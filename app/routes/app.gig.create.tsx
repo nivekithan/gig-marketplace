@@ -7,7 +7,6 @@ import {
   redirect,
 } from "@remix-run/node";
 import { Form } from "@remix-run/react";
-import { ValidationMap } from "react";
 import { z } from "zod";
 import { GigCreateOrEditFields } from "~/components/GigCreateEditFormFields";
 import { Button } from "~/components/ui/button";

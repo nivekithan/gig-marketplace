@@ -1,6 +1,6 @@
 import { db } from "~/lib/utils/db.server";
 import { and, desc, eq, ne } from "drizzle-orm";
-import { gigsTable } from "./schema.server";
+import { gigsTable, proposalTable } from "./schema.server";
 import { ValidGigSkills } from "./skills";
 
 export type GigRow = typeof gigsTable.$inferSelect;
@@ -17,6 +17,25 @@ export async function gigById({ id }: { id: string }) {
   }
 
   return gigs[0];
+}
+
+export async function getAllGigsProposedByUser({ userId }: { userId: string }) {
+  const gigs = await db
+    .select({
+      id: gigsTable.id,
+      name: gigsTable.name,
+      description: gigsTable.description,
+      price: gigsTable.price,
+      status: gigsTable.status,
+      skills: gigsTable.skills,
+      createdAt: gigsTable.createdAt,
+      updatedAt: gigsTable.updatedAt,
+    })
+    .from(proposalTable)
+    .where(eq(proposalTable.createdBy, userId))
+    .innerJoin(gigsTable, eq(proposalTable.gigId, gigsTable.id));
+
+  return gigs;
 }
 
 export async function createGigs({

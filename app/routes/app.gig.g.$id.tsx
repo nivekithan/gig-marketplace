@@ -49,6 +49,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     gig: whiteLabelGigs(gig),
     proposal: proposalByUser,
     noOfProposal: numberOfProposals,
+    isCreatedByUser: userId === gig.createdBy,
   });
 }
 
@@ -87,9 +88,27 @@ const CreateOrEditProposalSchema = z.object({
 });
 
 export default function Component() {
-  const { gig, proposal, noOfProposal } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const { gig, noOfProposal, isCreatedByUser } = useLoaderData<typeof loader>();
 
+  return (
+    <main className="w-[720px]">
+      <ExpandedGigInfo
+        name={gig.name}
+        createdAt={gig.createdAt}
+        description={gig.description}
+        skills={gig.skills}
+        price={gig.price}
+        noOfProposal={noOfProposal}
+      />
+      <Separator className="my-6" />
+      {isCreatedByUser ? null : <AddProposalForm />}
+    </main>
+  );
+}
+
+function AddProposalForm() {
+  const { proposal } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
   const isCreatingProposal = proposal === null;
 
   const [createGigForm, { proposal: proposalField, type: typeField }] = useForm(
@@ -105,52 +124,36 @@ export default function Component() {
   const navigation = useNavigation();
   const isSubmittingProposal =
     navigation.state === "loading" || navigation.state === "submitting";
-
   return (
-    <main className="w-[720px]">
-      <ExpandedGigInfo
-        name={gig.name}
-        createdAt={gig.createdAt}
-        description={gig.description}
-        skills={gig.skills}
-        price={gig.price}
-        noOfProposal={noOfProposal}
+    <Form
+      className="flex flex-col gap-y-6"
+      method="post"
+      {...createGigForm.props}
+    >
+      <input
+        hidden
+        {...conform.input(typeField)}
+        defaultValue={isCreatingProposal ? "create" : "edit"}
       />
-      <Separator className="my-6" />
-      <Form
-        className="flex flex-col gap-y-6"
-        method="post"
-        {...createGigForm.props}
-      >
-        <input
-          hidden
-          {...conform.input(typeField)}
-          defaultValue={isCreatingProposal ? "create" : "edit"}
+      <InputField>
+        <Label>Your proposal:</Label>
+        <Textarea
+          placeholder="Your proposal..."
+          {...conform.textarea(proposalField)}
+          defaultValue={proposal ? proposal.proposal : undefined}
         />
-        <InputField>
-          <Label>Your proposal:</Label>
-          <Textarea
-            placeholder="Your proposal..."
-            {...conform.textarea(proposalField)}
-            defaultValue={proposal ? proposal.proposal : undefined}
-          />
-          <InputErrors errors={proposalField.errors} />
-        </InputField>
-        <div>
-          <Button
-            type="submit"
-            className="flex gap-x-2"
-            disabled={isSubmittingProposal}
-          >
-            {isCreatingProposal ? "Submit Proposal" : "Edit Proposal"}
-            <ClipLoader
-              size={16}
-              loading={isSubmittingProposal}
-              color="white"
-            />
-          </Button>
-        </div>
-      </Form>
-    </main>
+        <InputErrors errors={proposalField.errors} />
+      </InputField>
+      <div>
+        <Button
+          type="submit"
+          className="flex gap-x-2"
+          disabled={isSubmittingProposal}
+        >
+          {isCreatingProposal ? "Submit Proposal" : "Edit Proposal"}
+          <ClipLoader size={16} loading={isSubmittingProposal} color="white" />
+        </Button>
+      </div>
+    </Form>
   );
 }

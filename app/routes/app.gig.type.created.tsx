@@ -25,9 +25,8 @@ import { parse } from "@conform-to/zod";
 import { useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { ValidGigSkills, validSkills } from "~/models/skills";
-import { Badge } from "~/components/ui/badge";
 import { GigInfo } from "~/components/GigInfo";
-import { CornerRightUp, MoveRight } from "lucide-react";
+import { CornerRightUp } from "lucide-react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUser(request);
@@ -94,7 +93,7 @@ function CreatedGigsEmptyState() {
         <p>Click below to start creating gigs for others to finish</p>
       </div>
       <div>
-        <Button>
+        <Button asChild>
           <Link to="/app/gig/create">Create new gig</Link>
         </Button>
       </div>
