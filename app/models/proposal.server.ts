@@ -1,6 +1,6 @@
 import { db } from "~/lib/utils/db.server";
 import { proposalTable } from "./schema.server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 export async function createProposal({
   createdBy,
@@ -23,6 +23,48 @@ export async function createProposal({
   }
 
   return createdProposal[0];
+}
+
+export async function getNumberOfProposalForGig({ gigId }: { gigId: string }) {
+  const noOfProposals = await db
+    .select({ count: sql<number>`cast(count(${proposalTable.id}) as int)` })
+    .from(proposalTable)
+    .where(eq(proposalTable.gigId, gigId));
+
+  if (noOfProposals.length === 0) {
+    return 0;
+  }
+
+  return noOfProposals[0].count;
+}
+
+export async function editProposal({
+  createdBy,
+  gigId,
+  proposal,
+}: {
+  gigId: string;
+  createdBy: string;
+  proposal: string;
+}) {
+  const editedProposal = await db
+    .update(proposalTable)
+    .set({ proposal: proposal, updatedAt: new Date() })
+    .where(
+      and(
+        eq(proposalTable.gigId, gigId),
+        eq(proposalTable.createdBy, createdBy),
+      ),
+    )
+    .returning();
+
+  if (editedProposal.length !== 1) {
+    throw new Error(
+      "Unexpected Error: Edited proposal is not returned by the database",
+    );
+  }
+
+  return editedProposal[0];
 }
 
 export async function proposalByUserForGig({

@@ -1,15 +1,17 @@
 import { conform, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
-import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import {
-  Await,
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  defer,
+  json,
+} from "@remix-run/node";
+import {
   Form,
   useActionData,
   useLoaderData,
   useNavigation,
 } from "@remix-run/react";
-import { CoffeeIcon } from "lucide-react";
-import { Suspense } from "react";
 import { ClipLoader } from "react-spinners";
 import { z } from "zod";
 import { ExpandedGigInfo } from "~/components/GigInfo";
@@ -17,10 +19,14 @@ import { InputErrors, InputField } from "~/components/inputField";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
-import { Skeleton } from "~/components/ui/skeleton";
 import { Textarea } from "~/components/ui/textarea";
 import { gigById, whiteLabelGigs } from "~/models/gigs.server";
-import { createProposal, proposalByUserForGig } from "~/models/proposal.server";
+import {
+  createProposal,
+  editProposal,
+  getNumberOfProposalForGig,
+  proposalByUserForGig,
+} from "~/models/proposal.server";
 import { requireUser } from "~/session";
 
 const RouteParamsSchema = z.object({ id: z.string() });
@@ -29,16 +35,21 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const { id } = RouteParamsSchema.parse(params);
   const userId = await requireUser(request);
 
-  const [gig, proposalByUser] = await Promise.all([
+  const [gig, proposalByUser, numberOfProposals] = await Promise.all([
     gigById({ id }),
     proposalByUserForGig({ gigId: id, userId }),
+    getNumberOfProposalForGig({ gigId: id }),
   ]);
 
   if (gig === null) {
     throw new Response("Not found", { status: 404 });
   }
 
-  return json({ gig: whiteLabelGigs(gig), proposal: proposalByUser });
+  return defer({
+    gig: whiteLabelGigs(gig),
+    proposal: proposalByUser,
+    noOfProposal: numberOfProposals,
+  });
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -54,12 +65,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return json({ submission }, { status: 400 });
   }
 
-  const { proposal } = submission.value;
-  await createProposal({
-    createdBy: userId,
-    gigId: id,
-    proposal,
-  });
+  const { proposal, type } = submission.value;
+  if (type === "create") {
+    await createProposal({
+      createdBy: userId,
+      gigId: id,
+      proposal,
+    });
+  } else if (type === "edit") {
+    await editProposal({ createdBy: userId, gigId: id, proposal });
+  }
 
   return json({ submission });
 }
@@ -72,7 +87,7 @@ const CreateOrEditProposalSchema = z.object({
 });
 
 export default function Component() {
-  const { gig, proposal } = useLoaderData<typeof loader>();
+  const { gig, proposal, noOfProposal } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
   const isCreatingProposal = proposal === null;
@@ -99,7 +114,7 @@ export default function Component() {
         description={gig.description}
         skills={gig.skills}
         price={gig.price}
-        id={gig.id}
+        noOfProposal={noOfProposal}
       />
       <Separator className="my-6" />
       <Form

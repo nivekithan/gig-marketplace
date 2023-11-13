@@ -1,6 +1,5 @@
 import { LoaderFunctionArgs, json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import { Gift } from "lucide-react";
 import { GigInfo } from "~/components/GigInfo";
 import { Button } from "~/components/ui/button";
 import { TextTitle } from "~/components/ui/text";
@@ -53,7 +52,14 @@ function LatestGigsEmptyState() {
   );
 }
 
-function SingleGig({ name, description, createdAt, skills, id }: ClientGigRow) {
+function SingleGig({
+  name,
+  description,
+  createdAt,
+  skills,
+  id,
+  price,
+}: ClientGigRow) {
   return (
     <Link
       to={`/app/gig/g/${id}`}
@@ -64,6 +70,7 @@ function SingleGig({ name, description, createdAt, skills, id }: ClientGigRow) {
         description={description}
         name={name}
         skills={skills}
+        price={price}
       />
     </Link>
   );

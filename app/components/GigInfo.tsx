@@ -3,6 +3,9 @@ import formatRelative from "date-fns/formatRelative";
 import { Badge } from "./ui/badge";
 import { ValidGigSkills } from "~/models/skills";
 import { Button } from "./ui/button";
+import { Suspense } from "react";
+import { Await } from "@remix-run/react";
+import { Skeleton } from "./ui/skeleton";
 
 export function GigInfo({
   name,
@@ -31,7 +34,7 @@ export function GigInfo({
         <div className="flex gap-x-2 flex-wrap">
           {skills.map((skill) => {
             return (
-              <Badge id="skill" variant="secondary">
+              <Badge id="skill" variant="secondary" key={skill}>
                 {skill}
               </Badge>
             );
@@ -46,21 +49,21 @@ export function GigInfo({
 }
 
 export type ExpandedGigInfoProps = {
-  id: string;
   name: string;
   createdAt: string;
   description: string;
   skills: ValidGigSkills[];
   price: number;
+  noOfProposal: number;
 };
 
 export function ExpandedGigInfo({
   createdAt,
   description,
-  id,
   name,
   skills,
   price,
+  noOfProposal,
 }: ExpandedGigInfoProps) {
   const postedBefore = formatRelative(new Date(createdAt), new Date());
   return (
@@ -68,7 +71,7 @@ export function ExpandedGigInfo({
       <div className="flex flex-col gap-y-4 items-start">
         <TextTitle className="text-xl">{name}</TextTitle>
         <p className="text-xs text-muted-foreground">
-          Posted on {postedBefore}
+          Posted on {postedBefore} | {noOfProposal} Proposals
         </p>
         <p className="text-base">{description}</p>
       </div>
@@ -76,7 +79,7 @@ export function ExpandedGigInfo({
         <div className="flex gap-x-3 flex-wrap">
           {skills.map((skill) => {
             return (
-              <Badge id="skill" variant="secondary">
+              <Badge id="skill" variant="secondary" key={skill}>
                 {skill}
               </Badge>
             );
