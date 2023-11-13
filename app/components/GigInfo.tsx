@@ -3,9 +3,6 @@ import formatRelative from "date-fns/formatRelative";
 import { Badge } from "./ui/badge";
 import { ValidGigSkills } from "~/models/skills";
 import { Button } from "./ui/button";
-import { Suspense } from "react";
-import { Await } from "@remix-run/react";
-import { Skeleton } from "./ui/skeleton";
 
 export function GigInfo({
   name,

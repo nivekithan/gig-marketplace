@@ -27,6 +27,7 @@ import { ClipLoader } from "react-spinners";
 import { ValidGigSkills, validSkills } from "~/models/skills";
 import { Badge } from "~/components/ui/badge";
 import { GigInfo } from "~/components/GigInfo";
+import { CornerRightUp, MoveRight } from "lucide-react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUser(request);
@@ -162,10 +163,11 @@ function SingleGig({
 
   return (
     <Sheet open={isSheetOpen} onOpenChange={(v) => setIsSheetOpen(v)}>
-      <SheetTrigger asChild>
-        <button
+      <div className="flex flex-col gap-y-2">
+        <Link
           type="button"
           className="p-4  border rounded-md w-[720px] transition-colors hover:border-primary text-start"
+          to={`/app/gig/g/${id}`}
         >
           <GigInfo
             createdAt={createdAt}
@@ -174,8 +176,16 @@ function SingleGig({
             skills={skills}
             price={price}
           />
-        </button>
-      </SheetTrigger>
+        </Link>
+        <div>
+          <SheetTrigger asChild>
+            <Button variant="secondary" className="flex gap-x-2">
+              <span> Edit Proposal </span>
+              <CornerRightUp size={14} />
+            </Button>
+          </SheetTrigger>
+        </div>
+      </div>
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Edit Gig</SheetTitle>
@@ -186,18 +196,20 @@ function SingleGig({
         <editGigFetcher.Form
           method="post"
           {...updateGigForm.props}
-          className="flex flex-col gap-y-3 mt-6"
+          className="flex flex-col gap-y-6 mt-6"
         >
-          <GigCreateOrEditFields
-            description={descriptionField}
-            name={nameField}
-            price={priceField}
-            defaultDescription={description}
-            defaultName={name}
-            defaultPrice={price}
-            defaultSkills={skills}
-            skills={skillsField}
-          />
+          <div className="flex flex-col gap-y-3">
+            <GigCreateOrEditFields
+              description={descriptionField}
+              name={nameField}
+              price={priceField}
+              defaultDescription={description}
+              defaultName={name}
+              defaultPrice={price}
+              defaultSkills={skills}
+              skills={skillsField}
+            />
+          </div>
           <input hidden {...conform.input(idField)} defaultValue={id} />
           <div className="flex gap-x-4 items-center">
             <Button
