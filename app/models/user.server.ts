@@ -1,17 +1,7 @@
-import { pgTable, text } from "drizzle-orm/pg-core";
 import { hash } from "bcryptjs";
 import { db } from "~/lib/utils/db.server";
 import { eq } from "drizzle-orm";
-import crypto from "node:crypto";
-
-export const userTable = pgTable("user_table", {
-  id: text("id")
-    .primaryKey()
-    .notNull()
-    .$defaultFn(() => crypto.randomUUID()),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-});
+import { userTable } from "./schema.server";
 
 export async function createUser({
   email,

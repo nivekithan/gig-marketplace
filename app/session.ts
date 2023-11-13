@@ -34,7 +34,7 @@ export async function requireAnonymous(request: Request) {
   const userId = await getUser(request);
 
   if (userId !== undefined) {
-    throw redirect("/");
+    throw redirect("/app/gig/type/latest");
   }
 }
 

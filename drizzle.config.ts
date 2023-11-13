@@ -2,7 +2,7 @@ import { defineConfig } from "drizzle-kit";
 import { env } from "~/lib/utils/env.server";
 
 export default defineConfig({
-  schema: "./app/models/**",
+  schema: "./app/models/schema.server.ts",
   driver: "pg",
   dbCredentials: {
     database: env.PG_DATABASE,
@@ -11,6 +11,5 @@ export default defineConfig({
     user: env.PG_USER,
     ssl: true,
   },
-  strict: true,
   out: "drizzle",
 });

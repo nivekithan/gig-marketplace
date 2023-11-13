@@ -1,9 +1,61 @@
 {
-  "id": "16f45499-fbec-4290-8218-8c6a79728d1c",
+  "id": "ecd156d9-bb68-46be-a2a4-266aadc3455f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
   "tables": {
+    "gigs": {
+      "name": "gigs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price": {
+          "name": "price",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "gigs_status",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "user_table": {
       "name": "user_table",
       "schema": "",
@@ -41,7 +93,16 @@
       }
     }
   },
-  "enums": {},
+  "enums": {
+    "gigs_status": {
+      "name": "gigs_status",
+      "values": {
+        "CREATED": "CREATED",
+        "COMPLETED": "COMPLETED",
+        "ASSIGNED": "ASSIGNED"
+      }
+    }
+  },
   "schemas": {},
   "_meta": {
     "schemas": {},

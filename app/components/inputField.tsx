@@ -1,7 +1,11 @@
 export type InputFieldProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function InputField(props: InputFieldProps) {
-  return <div {...props}>{props.children}</div>;
+  return (
+    <div {...props} className="flex flex-col gap-y-1">
+      {props.children}
+    </div>
+  );
 }
 
 export type InputErrosProps = {

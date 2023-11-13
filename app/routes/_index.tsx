@@ -1,4 +1,5 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import { requireUser } from "~/session";
 
 export const meta: MetaFunction = () => {
   return [
@@ -7,6 +8,11 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  await requireUser(request);
+
+  return null;
+}
 export default function Index() {
   return <h1>Hello world</h1>;
 }
