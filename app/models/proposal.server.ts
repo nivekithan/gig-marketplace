@@ -91,3 +91,25 @@ export async function proposalByUserForGig({
 
   return proposal[0];
 }
+
+export async function deleteProposalByUserOnGig({
+  gigId,
+  userId,
+}: {
+  gigId: string;
+  userId: string;
+}) {
+  const deletedProposal = await db
+    .delete(proposalTable)
+    .where(
+      and(eq(proposalTable.createdBy, userId), eq(proposalTable.gigId, gigId)),
+    )
+    .returning();
+
+  if (deletedProposal.length !== 1) {
+    throw new Error(
+      "Unexpected Error: Deleted Proposal is not returned by the database",
+    );
+  }
+  return deletedProposal[0];
+}

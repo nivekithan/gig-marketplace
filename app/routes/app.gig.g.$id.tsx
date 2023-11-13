@@ -23,6 +23,7 @@ import { Textarea } from "~/components/ui/textarea";
 import { gigById, whiteLabelGigs } from "~/models/gigs.server";
 import {
   createProposal,
+  deleteProposalByUserOnGig,
   editProposal,
   getNumberOfProposalForGig,
   proposalByUserForGig,
@@ -75,6 +76,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     });
   } else if (type === "edit") {
     await editProposal({ createdBy: userId, gigId: id, proposal });
+  } else if (type === "delete") {
+    await deleteProposalByUserOnGig({ gigId: id, userId });
   }
 
   return json({ submission });
@@ -84,7 +87,7 @@ const CreateOrEditProposalSchema = z.object({
   proposal: z
     .string({ required_error: "Proposal is a required field" })
     .min(100, "Proposal must be atleast 100 characters long"),
-  type: z.union([z.literal("create"), z.literal("edit")]),
+  type: z.union([z.literal("create"), z.literal("edit"), z.literal("delete")]),
 });
 
 export default function Component() {
@@ -122,19 +125,22 @@ function AddProposalForm() {
   );
 
   const navigation = useNavigation();
-  const isSubmittingProposal =
+  const isSubmittingForm =
     navigation.state === "loading" || navigation.state === "submitting";
+
+  const isCreatingOrEditingProposal =
+    (isSubmittingForm && navigation.formData?.get("type") === "create") ||
+    navigation.formData?.get("type") === "edit";
+
+  const isDeletingProposal =
+    isSubmittingForm && navigation.formData?.get("type") === "delete";
+
   return (
     <Form
       className="flex flex-col gap-y-6"
       method="post"
       {...createGigForm.props}
     >
-      <input
-        hidden
-        {...conform.input(typeField)}
-        defaultValue={isCreatingProposal ? "create" : "edit"}
-      />
       <InputField>
         <Label>Your proposal:</Label>
         <Textarea
@@ -144,15 +150,35 @@ function AddProposalForm() {
         />
         <InputErrors errors={proposalField.errors} />
       </InputField>
-      <div>
+      <div className="flex gap-x-3 items-center">
         <Button
           type="submit"
           className="flex gap-x-2"
-          disabled={isSubmittingProposal}
+          disabled={isSubmittingForm}
+          name={typeField.name}
+          value={isCreatingProposal ? "create" : "edit"}
         >
           {isCreatingProposal ? "Submit Proposal" : "Edit Proposal"}
-          <ClipLoader size={16} loading={isSubmittingProposal} color="white" />
+          <ClipLoader
+            size={16}
+            loading={isCreatingOrEditingProposal}
+            color="white"
+          />
         </Button>
+        {isCreatingProposal ? null : (
+          <Button
+            type="submit"
+            variant="destructive"
+            size="sm"
+            name={typeField.name}
+            value={"delete"}
+            disabled={isSubmittingForm}
+            className="flex gap-x-2"
+          >
+            Delete Proposal
+            <ClipLoader size={16} loading={isDeletingProposal} color="white" />
+          </Button>
+        )}
       </div>
     </Form>
   );
