@@ -7,6 +7,7 @@ import {
   deleteGig,
   editGigs,
   getGigsCreatedBy,
+  gigById,
   whiteLabelGigs,
 } from "~/models/gigs.server";
 import { requireUser } from "~/session";
@@ -27,6 +28,8 @@ import { ClipLoader } from "react-spinners";
 import { ValidGigSkills, validSkills } from "~/models/skills";
 import { GigInfo } from "~/components/GigInfo";
 import { CornerRightUp } from "lucide-react";
+import { addCreditsToUser } from "~/models/user.server";
+import { db } from "~/lib/utils/db.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUser(request);
@@ -48,21 +51,30 @@ export async function action({ request }: ActionFunctionArgs) {
     return json({ submission });
   }
 
-  const { description, id, name, price, type } = submission.value;
+  const { description, id, name, type } = submission.value;
   if (type === "edit") {
     const updatedGig = await editGigs({
       createdBy: userId,
       description,
       id,
       name,
-      price,
     });
 
     return json({ updatedGig: whiteLabelGigs(updatedGig), submission });
   } else if (type === "delete") {
-    const deletedGig = await deleteGig({ createdBy: userId, id });
+    db.transaction(async () => {
+      const gigDetails = await gigById({ id });
 
-    return json({ deletedGig: whiteLabelGigs(deletedGig), submission });
+      await deleteGig({ createdBy: userId, id });
+
+      if (!gigDetails) {
+        throw new Error(`Unexpected Error: There is no gig with id ${id} `);
+      }
+
+      await addCreditsToUser({ credits: gigDetails.price, userId });
+    });
+
+    return json({ submission });
   }
 }
 
@@ -105,7 +117,6 @@ const EditOrDeleteGigSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
-  price: z.number().positive().int(),
   type: z.union([z.literal("edit"), z.literal("delete")]),
   skills: z.array(
     z.union(
@@ -142,7 +153,6 @@ function SingleGig({
       description: descriptionField,
       id: idField,
       name: nameField,
-      price: priceField,
       skills: skillsField,
     },
   ] = useForm({
@@ -201,10 +211,8 @@ function SingleGig({
             <GigCreateOrEditFields
               description={descriptionField}
               name={nameField}
-              price={priceField}
               defaultDescription={description}
               defaultName={name}
-              defaultPrice={price}
               defaultSkills={skills}
               skills={skillsField}
             />

@@ -9,7 +9,7 @@ import { ValidGigSkills, validSkills } from "~/models/skills";
 export type GigCreateOrEditFields = {
   name: FieldConfig<string>;
   description: FieldConfig<string>;
-  price: FieldConfig<number>;
+  price?: FieldConfig<number>;
   skills: FieldConfig<ValidGigSkills[]>;
 
   defaultName?: string;
@@ -44,15 +44,17 @@ export function GigCreateOrEditFields({
         />
         <InputErrors errors={description.errors} />
       </InputField>
-      <InputField>
-        <Label>Price in USD:</Label>
-        <Input
-          {...conform.input(price)}
-          className="max-w-[120px] min-w-[0px]"
-          defaultValue={defaultPrice}
-        />
-        <InputErrors errors={price.errors} />
-      </InputField>
+      {price ? (
+        <InputField>
+          <Label>Price in USD:</Label>
+          <Input
+            {...conform.input(price)}
+            className="max-w-[120px] min-w-[0px]"
+            defaultValue={defaultPrice}
+          />
+          <InputErrors errors={price.errors} />
+        </InputField>
+      ) : null}
       <SkillMultiSelect
         skills={skills}
         defaultValue={defaultSkills ? defaultSkills : []}

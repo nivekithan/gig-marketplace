@@ -157,7 +157,7 @@ export default function Component() {
       <Alert className="flex flex-col gap-y-2" variant="destructive">
         <AlertTitle className="font-semibold tracking-tight flex gap-x-2">
           <AlertCircle className="w-4 h-4" />
-          Do not put your real eredit card number
+          Do not put your real credit card number
         </AlertTitle>
         <AlertDescription>
           This website is created for a hackathon to showcase Pangea

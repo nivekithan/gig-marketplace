@@ -92,19 +92,17 @@ export async function latestGigsNotCreatedBy({ userId }: { userId: string }) {
 export async function editGigs({
   description,
   name,
-  price,
   createdBy,
   id,
 }: {
   name: string;
   description: string;
-  price: number;
   createdBy: string;
   id: string;
 }) {
   const updatedGig = await db
     .update(gigsTable)
-    .set({ description, name, price })
+    .set({ description, name })
     .where(and(eq(gigsTable.id, id), eq(gigsTable.createdBy, createdBy)))
     .returning();
 
