@@ -119,20 +119,29 @@ export async function addCreditsToUser({
 export async function withdrawCredits({
   credits,
   userId,
+  saveTransaction = true,
 }: {
   userId: string;
   credits: number;
+  saveTransaction: boolean;
 }) {
-  await db.transaction(async (db) => {
-    await db
-      .insert(paymentHistoryTable)
-      .values({ userId, orderValue: credits, orderType: "withdraw" });
+  if (saveTransaction) {
+    await db.transaction(async (db) => {
+      await db
+        .insert(paymentHistoryTable)
+        .values({ userId, orderValue: credits, orderType: "withdraw" });
 
+      await db
+        .update(userTable)
+        .set({ credits: sql`${userTable.credits} - ${credits}` })
+        .where(eq(userTable.id, userId));
+    });
+  } else {
     await db
       .update(userTable)
       .set({ credits: sql`${userTable.credits} - ${credits}` })
       .where(eq(userTable.id, userId));
-  });
+  }
 }
 
 export function whiteLabelUser({ email, id, name, skills }: UserRow) {
