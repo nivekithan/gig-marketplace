@@ -1,7 +1,7 @@
 import { hash } from "bcryptjs";
 import { db } from "~/lib/utils/db.server";
 import { eq, sql } from "drizzle-orm";
-import { userTable } from "./schema.server";
+import { paymentHistoryTable, userTable } from "./schema.server";
 import { ValidGigSkills } from "./skills";
 
 export type UserRow = typeof userTable.$inferSelect;
@@ -105,14 +105,15 @@ export async function addCreditsToUser({
   userId: string;
   credits: number;
 }) {
-  await db
-    .update(userTable)
-    .set({ credits: sql`${userTable.credits} + ${credits}` })
-    .where(eq(userTable.id, userId));
-}
-
-export function whiteLabelUser({ email, id, name, skills }: UserRow) {
-  return { email, id, name, skills };
+  await db.transaction(async (db) => {
+    await db
+      .insert(paymentHistoryTable)
+      .values({ userId, orderValue: credits, orderType: "add" });
+    await db
+      .update(userTable)
+      .set({ credits: sql`${userTable.credits} + ${credits}` })
+      .where(eq(userTable.id, userId));
+  });
 }
 
 export async function withdrawCredits({
@@ -122,8 +123,18 @@ export async function withdrawCredits({
   userId: string;
   credits: number;
 }) {
-  await db
-    .update(userTable)
-    .set({ credits: sql`${userTable.credits} - ${credits}` })
-    .where(eq(userTable.id, userId));
+  await db.transaction(async (db) => {
+    await db
+      .insert(paymentHistoryTable)
+      .values({ userId, orderValue: credits, orderType: "withdraw" });
+
+    await db
+      .update(userTable)
+      .set({ credits: sql`${userTable.credits} - ${credits}` })
+      .where(eq(userTable.id, userId));
+  });
+}
+
+export function whiteLabelUser({ email, id, name, skills }: UserRow) {
+  return { email, id, name, skills };
 }

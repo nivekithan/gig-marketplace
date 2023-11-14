@@ -83,8 +83,7 @@ export default function Component() {
   });
 
   const navigation = useNavigation();
-  const isUpdatingProfile =
-    navigation.state === "loading" || navigation.state === "submitting";
+  const isUpdatingProfile = navigation.state === "submitting";
 
   return (
     <div className="max-w-[720px]">

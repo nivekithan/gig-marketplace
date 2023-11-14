@@ -14,7 +14,7 @@ export const gigsStatusEnum = pgEnum("gigs_status", [
   "CREATED",
   "COMPLETED",
   "ASSIGNED",
-] as const);
+]);
 
 export const gigsTable = pgTable("gigs", {
   id: text("id")
@@ -86,4 +86,24 @@ export const creditCardTable = pgTable("credit_card", {
     .notNull()
     .unique()
     .references(() => userTable.id),
+});
+
+export const paymentOrderType = pgEnum("payment_order_type", [
+  "add",
+  "withdraw",
+]);
+
+export const paymentHistoryTable = pgTable("payment_history", {
+  id: text("id")
+    .primaryKey()
+    .notNull()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => userTable.id),
+  orderValue: integer("order_value").notNull(),
+  orderType: paymentOrderType("order_type").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
