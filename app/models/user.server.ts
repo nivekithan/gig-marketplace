@@ -1,6 +1,6 @@
 import { hash } from "bcryptjs";
 import { db } from "~/lib/utils/db.server";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { userTable } from "./schema.server";
 import { ValidGigSkills } from "./skills";
 
@@ -91,10 +91,6 @@ export async function getUserCredits({ userId }: { userId: string }) {
     .from(userTable)
     .where(eq(userTable.id, userId));
 
-  if (user.length === 0) {
-    return null;
-  }
-
   if (user.length !== 1) {
     throw new Error("Unexpected Error: Multiple credits got returned");
   }
@@ -102,6 +98,32 @@ export async function getUserCredits({ userId }: { userId: string }) {
   return user[0].credits;
 }
 
+export async function addCreditsToUser({
+  userId,
+  credits,
+}: {
+  userId: string;
+  credits: number;
+}) {
+  await db
+    .update(userTable)
+    .set({ credits: sql`${userTable.credits} + ${credits}` })
+    .where(eq(userTable.id, userId));
+}
+
 export function whiteLabelUser({ email, id, name, skills }: UserRow) {
   return { email, id, name, skills };
+}
+
+export async function withdrawCredits({
+  credits,
+  userId,
+}: {
+  userId: string;
+  credits: number;
+}) {
+  await db
+    .update(userTable)
+    .set({ credits: sql`${userTable.credits} - ${credits}` })
+    .where(eq(userTable.id, userId));
 }

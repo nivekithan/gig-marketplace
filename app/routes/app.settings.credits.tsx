@@ -1,8 +1,9 @@
-import { conform, useForm } from "@conform-to/react";
+import { Submission, conform, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { z } from "zod";
 import { InputErrors, InputField } from "~/components/inputField";
@@ -10,13 +11,26 @@ import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "~/components/ui/sheet";
 import { TextTitle } from "~/components/ui/text";
+import { addError } from "~/lib/utils/conform.server";
 import {
   createCreditCardForUser,
   editCreditCardForUser,
   getCreditCardDetailsForUser,
 } from "~/models/creditCard.server";
-import { getUserCredits } from "~/models/user.server";
+import {
+  addCreditsToUser,
+  getUserCredits,
+  withdrawCredits,
+} from "~/models/user.server";
 import { requireUser } from "~/session";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -40,11 +54,15 @@ export async function action({ request }: ActionFunctionArgs) {
   ]);
 
   const submission = parse(formData, {
-    schema: UpdateOrCreateCreditCardSchema,
+    schema: z.union([
+      UpdateOrCreateCreditCardSchema,
+      AddCreditSchema,
+      WithdrawCreditSchema,
+    ]),
   });
 
   if (!submission.value || submission.intent !== "submit") {
-    return json({ submission }, { status: 400 });
+    return json({ submission, ok: false }, { status: 400 });
   }
 
   const submissionData = submission.value;
@@ -55,14 +73,48 @@ export async function action({ request }: ActionFunctionArgs) {
       name: submissionData.name,
       userId,
     });
-    return json({ submission });
+    return json({ submission, ok: true });
   } else if (submissionData.type === "editCreditCard") {
     await editCreditCardForUser({
       cardNumber: submissionData.cardNumber.toString(),
       name: submissionData.name,
       userId,
     });
-    return json({ submission });
+    return json({ submission, ok: true });
+  } else if (submissionData.type === "addCredit") {
+    const creditCardDetials = await getCreditCardDetailsForUser({ userId });
+
+    if (creditCardDetials === null) {
+      addError({
+        submission: submission as Submission<{
+          credits: number;
+          type: "addCredit";
+        }>,
+        key: "credits",
+        error:
+          "There is no credit card information avaliable. Add credit card info then try again.",
+      });
+      return json({ submission, ok: false }, { status: 400 });
+    }
+    await addCreditsToUser({ credits: submissionData.credits, userId });
+    return json({ submission, ok: true });
+  } else if (submissionData.type === "withdrawCredit") {
+    const avaliableCredits = await getUserCredits({ userId });
+
+    if (avaliableCredits < submissionData.credits) {
+      addError({
+        submission: submission as Submission<{
+          credits: number;
+          type: "withdrawCredit";
+        }>,
+        key: "credits",
+        error:
+          "You don't have enough credit to withdraw. Earn credit by completing gigs",
+      });
+      return json({ submission, ok: false }, { status: 400 });
+    }
+    await withdrawCredits({ credits: submissionData.credits, userId });
+    return json({ submission, ok: true });
   }
 }
 const UpdateOrCreateCreditCardSchema = z.object({
@@ -123,12 +175,8 @@ export default function Component() {
           </p>
         </div>
         <div className="flex gap-x-2">
-          <Button variant="secondary" size="sm">
-            Add Credit
-          </Button>
-          <Button variant="secondary" size="sm">
-            Withdraw Credit
-          </Button>
+          <AddCreditSheet />
+          <WithdrawCreditSheet />
         </div>
       </div>
 
@@ -175,5 +223,155 @@ export default function Component() {
         </creditCardFetcher.Form>
       </div>
     </div>
+  );
+}
+
+const AddCreditSchema = z.object({
+  credits: z
+    .number({
+      required_error: "Credits is required field",
+      invalid_type_error: "Provide valid credits value",
+    })
+    .int("Provide valid credits value")
+    .positive("Provide valid credits value"),
+  type: z.literal("addCredit"),
+});
+
+function AddCreditSheet() {
+  const addCreditsFetcher = useFetcher<typeof action>();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const [addCreditForm, { credits, type }] = useForm({
+    lastSubmission: addCreditsFetcher.data?.submission,
+    onValidate({ formData }) {
+      return parse(formData, { schema: AddCreditSchema });
+    },
+  });
+
+  const isAddingCredit =
+    addCreditsFetcher.state === "loading" ||
+    addCreditsFetcher.state === "submitting";
+
+  useEffect(() => {
+    if (!isAddingCredit && addCreditsFetcher.data?.ok) {
+      setIsSheetOpen(false);
+    }
+  }, [isAddingCredit]);
+
+  return (
+    <Sheet open={isSheetOpen} onOpenChange={(v) => setIsSheetOpen(v)}>
+      <SheetTrigger asChild>
+        <Button variant="secondary" size="sm">
+          Add credits
+        </Button>
+      </SheetTrigger>
+      <SheetContent className="flex flex-col gap-y-3">
+        <SheetHeader>
+          <SheetTitle>Add more credits to your account</SheetTitle>
+          <SheetDescription>
+            With credits you can create gigs which can be completed by others
+          </SheetDescription>
+        </SheetHeader>
+        <addCreditsFetcher.Form
+          method="post"
+          {...addCreditForm.props}
+          className="flex flex-col gap-y-3"
+        >
+          <InputField>
+            <Label>Number of credits to add:</Label>
+            <Input {...conform.input(credits)} />
+            <InputErrors errors={credits.errors} />
+          </InputField>
+          <div>
+            <Button
+              type="submit"
+              className="flex gap-x-2"
+              name={type.name}
+              value={"addCredit"}
+            >
+              Add credits
+              <ClipLoader size="16" loading={isAddingCredit} color="white" />
+            </Button>
+          </div>
+        </addCreditsFetcher.Form>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+const WithdrawCreditSchema = z.object({
+  credits: z
+    .number({
+      required_error: "Credits is required field",
+      invalid_type_error: "Provide valid value to credits",
+    })
+    .int("Provide valid value to credits")
+    .positive("Provide value to credits"),
+  type: z.literal("withdrawCredit"),
+});
+
+function WithdrawCreditSheet() {
+  const withdrawCreditsFetcher = useFetcher<typeof action>();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const [withdrawCreditForm, { credits, type }] = useForm({
+    lastSubmission: withdrawCreditsFetcher.data?.submission,
+    onValidate({ formData }) {
+      return parse(formData, { schema: WithdrawCreditSchema });
+    },
+  });
+
+  const isWithdrawingCredit =
+    withdrawCreditsFetcher.state === "loading" ||
+    withdrawCreditsFetcher.state === "submitting";
+
+  useEffect(() => {
+    if (!isWithdrawingCredit && withdrawCreditsFetcher.data?.ok) {
+      setIsSheetOpen(false);
+    }
+  }, [isWithdrawingCredit]);
+
+  return (
+    <Sheet open={isSheetOpen} onOpenChange={(v) => setIsSheetOpen(v)}>
+      <SheetTrigger asChild>
+        <Button variant="secondary" size="sm">
+          Withdraw credits
+        </Button>
+      </SheetTrigger>
+      <SheetContent className="flex flex-col gap-y-3">
+        <SheetHeader>
+          <SheetTitle>Withdraw credits to your account</SheetTitle>
+          <SheetDescription>
+            One credit is equal to 1 USD dollar
+          </SheetDescription>
+        </SheetHeader>
+        <withdrawCreditsFetcher.Form
+          method="post"
+          {...withdrawCreditForm.props}
+          className="flex flex-col gap-y-3"
+        >
+          <InputField>
+            <Label>Number of credits to withdraw:</Label>
+            <Input {...conform.input(credits)} />
+            <InputErrors errors={credits.errors} />
+          </InputField>
+          <div>
+            <Button
+              type="submit"
+              className="flex gap-x-2"
+              name={type.name}
+              value={"withdrawCredit"}
+            >
+              Withdraw credits
+              <ClipLoader
+                size="16"
+                loading={isWithdrawingCredit}
+                color="white"
+              />
+            </Button>
+          </div>
+        </withdrawCreditsFetcher.Form>
+      </SheetContent>
+    </Sheet>
   );
 }
