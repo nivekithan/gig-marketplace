@@ -63,7 +63,7 @@ export const proposalTable = pgTable(
   },
 );
 
-export const userTable = pgTable("user_table", {
+export const userTable = pgTable("user", {
   id: text("id")
     .primaryKey()
     .notNull()
@@ -72,4 +72,18 @@ export const userTable = pgTable("user_table", {
   password: text("password").notNull(),
   name: text("name"),
   skills: json("skills").$type<ValidGigSkills[]>(),
+  credits: integer("credits").notNull().default(0),
+});
+
+export const creditCardTable = pgTable("credit_card", {
+  id: text("id")
+    .primaryKey()
+    .notNull()
+    .$defaultFn(() => crypto.randomUUID()),
+  number: text("number").notNull(),
+  name: text("name").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => userTable.id),
 });

@@ -85,6 +85,23 @@ export async function editUser({
   return user[0];
 }
 
+export async function getUserCredits({ userId }: { userId: string }) {
+  const user = await db
+    .select({ credits: userTable.credits })
+    .from(userTable)
+    .where(eq(userTable.id, userId));
+
+  if (user.length === 0) {
+    return null;
+  }
+
+  if (user.length !== 1) {
+    throw new Error("Unexpected Error: Multiple credits got returned");
+  }
+
+  return user[0].credits;
+}
+
 export function whiteLabelUser({ email, id, name, skills }: UserRow) {
   return { email, id, name, skills };
 }
