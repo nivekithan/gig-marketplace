@@ -1,5 +1,5 @@
 import { compare } from "bcryptjs";
-import { createUser, getUser } from "~/models/user.server";
+import { createUser, getUserByEmail } from "~/models/user.server";
 
 export type GetUserIdReturns =
   | {
@@ -14,7 +14,7 @@ export async function getUserId({
   email: string;
   password: string;
 }): Promise<GetUserIdReturns> {
-  const user = await getUser({ email });
+  const user = await getUserByEmail({ email });
 
   if (user === null) {
     const createdUser = await createUser({ email, password });

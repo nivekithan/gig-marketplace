@@ -70,4 +70,6 @@ export const userTable = pgTable("user_table", {
     .$defaultFn(() => crypto.randomUUID()),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  name: text("name"),
+  skills: json("skills").$type<ValidGigSkills[]>(),
 });

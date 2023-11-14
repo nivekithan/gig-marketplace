@@ -65,7 +65,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const userId = userState.userId;
 
   authSession.set("userId", userId);
-  return redirect("/", {
+  return redirect("/app/settings/profile", {
     headers: {
       "Set-Cookie": await authSessionStorage.commitSession(authSession),
     },
