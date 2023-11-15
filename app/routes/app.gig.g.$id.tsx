@@ -358,7 +358,7 @@ function SingleOpenProposal({
 }
 
 function AddProposalForm() {
-  const { proposal } = useLoaderData<typeof loader>();
+  const { proposal, gig } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
   const [createGigForm, { proposal: proposalField, type: typeField }] = useForm(
@@ -387,6 +387,20 @@ function AddProposalForm() {
       <Await resolve={proposal}>
         {(proposal) => {
           const isCreatingProposal = proposal === null;
+
+          const proposalStatus = (() => {
+            if (
+              proposal?.status === "REJECTED" ||
+              (gig.status !== "CREATED" && proposal?.status !== "ACCEPTED")
+            ) {
+              return "REJECETD";
+            } else if (proposal?.status === "ACCEPTED") {
+              return "ACCEPTED";
+            }
+
+            return "OPEN";
+          })();
+
           return (
             <Form
               className="flex flex-col gap-y-6"
@@ -394,48 +408,57 @@ function AddProposalForm() {
               {...createGigForm.props}
             >
               <InputField>
-                <Label>Your proposal:</Label>
+                <div className="flex gap-x-2 items-center">
+                  <Label>Your proposal:</Label>
+                  {proposalStatus === "OPEN" ? null : (
+                    <Badge>{proposalStatus}</Badge>
+                  )}
+                </div>
                 <Textarea
                   placeholder="Your proposal..."
                   {...conform.textarea(proposalField)}
                   defaultValue={proposal ? proposal.proposal : undefined}
+                  readOnly={proposalStatus !== "OPEN"}
+                  className="h-[120px]"
                 />
                 <InputErrors errors={proposalField.errors} />
               </InputField>
-              <div className="flex gap-x-3 items-center">
-                <Button
-                  type="submit"
-                  className="flex gap-x-2"
-                  disabled={isSubmittingForm}
-                  name={typeField.name}
-                  value={isCreatingProposal ? "create" : "edit"}
-                >
-                  {isCreatingProposal ? "Submit Proposal" : "Edit Proposal"}
-                  <ClipLoader
-                    size={16}
-                    loading={isCreatingOrEditingProposal}
-                    color="white"
-                  />
-                </Button>
-                {isCreatingProposal ? null : (
+              {proposalStatus === "OPEN" ? (
+                <div className="flex gap-x-3 items-center">
                   <Button
                     type="submit"
-                    variant="destructive"
-                    size="sm"
-                    name={typeField.name}
-                    value={"delete"}
-                    disabled={isSubmittingForm}
                     className="flex gap-x-2"
+                    disabled={isSubmittingForm}
+                    name={typeField.name}
+                    value={isCreatingProposal ? "create" : "edit"}
                   >
-                    Delete Proposal
+                    {isCreatingProposal ? "Submit Proposal" : "Edit Proposal"}
                     <ClipLoader
                       size={16}
-                      loading={isDeletingProposal}
+                      loading={isCreatingOrEditingProposal}
                       color="white"
                     />
                   </Button>
-                )}
-              </div>
+                  {isCreatingProposal ? null : (
+                    <Button
+                      type="submit"
+                      variant="destructive"
+                      size="sm"
+                      name={typeField.name}
+                      value={"delete"}
+                      disabled={isSubmittingForm}
+                      className="flex gap-x-2"
+                    >
+                      Delete Proposal
+                      <ClipLoader
+                        size={16}
+                        loading={isDeletingProposal}
+                        color="white"
+                      />
+                    </Button>
+                  )}
+                </div>
+              ) : null}
             </Form>
           );
         }}
