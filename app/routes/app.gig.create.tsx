@@ -18,6 +18,8 @@ import { createGigs } from "~/models/gigs.server";
 import { ValidGigSkills, validSkills } from "~/models/skills";
 import { getUserCredits, withdrawCredits } from "~/models/user.server";
 import { requireUser } from "~/session";
+import getUrls from "get-urls";
+import { verifyUrlisGood as verifyUrlIsGood } from "~/lib/utils/pangea.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireUser(request);
@@ -60,6 +62,32 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const { description, name, price, skills } = submission.value;
+
+  const allUrlsInDescription = getUrls(description);
+
+  const urlStatus = await Promise.all(
+    new Array(...allUrlsInDescription).map(async (url) => {
+      return { url: url, isSafe: await verifyUrlIsGood(url) };
+    }),
+  );
+
+  let isUrlSafe = true;
+
+  urlStatus.forEach(({ isSafe, url }) => {
+    if (!isSafe) {
+      isUrlSafe = false;
+    }
+
+    addError({
+      submission,
+      key: "description",
+      error: `Url: ${url} is considered to be harmful. Please remove it from the description`,
+    });
+  });
+
+  if (!isUrlSafe) {
+    return json({ submission }, { status: 400 });
+  }
 
   const { ok } = await db.transaction(async (tx) => {
     const userAvalaibleCredits = await getUserCredits({ userId: userId });

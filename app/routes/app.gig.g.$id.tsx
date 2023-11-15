@@ -1,4 +1,4 @@
-import { conform, useForm } from "@conform-to/react";
+import { Submission, conform, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
 import {
   ActionFunctionArgs,
@@ -15,6 +15,7 @@ import {
   useLoaderData,
   useNavigation,
 } from "@remix-run/react";
+import getUrls from "get-urls";
 import { Clock } from "lucide-react";
 import { Suspense } from "react";
 import { ClipLoader } from "react-spinners";
@@ -29,6 +30,8 @@ import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
 import { TextTitle } from "~/components/ui/text";
 import { AutoSizeTextArea } from "~/components/ui/textarea";
+import { addError } from "~/lib/utils/conform.server";
+import { verifyUrlisGood } from "~/lib/utils/pangea.server";
 import {
   ClientGigRow,
   finishGig,
@@ -137,12 +140,64 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const submissionData = submission.value;
   if (submissionData.type === "create") {
+    const allUrlsInProposal = getUrls(submissionData.proposal);
+
+    const urlStatus = await Promise.all(
+      new Array(...allUrlsInProposal).map(async (url) => {
+        return { url: url, isSafe: await verifyUrlisGood(url) };
+      }),
+    );
+
+    let isUrlSafe = true;
+
+    urlStatus.forEach(({ isSafe, url }) => {
+      if (!isSafe) {
+        isUrlSafe = false;
+      }
+
+      addError({
+        submission: submission as Submission<{ proposal: string }>,
+        key: "proposal",
+        error: `Url: ${url} is considered to be harmful. Please remove it from the proposal`,
+      });
+    });
+
+    if (!isUrlSafe) {
+      return json({ submission }, { status: 400 });
+    }
+
     await createProposal({
       createdBy: userId,
       gigId: id,
       proposal: submissionData.proposal,
     });
   } else if (submissionData.type === "edit") {
+    const allUrlsInProposal = getUrls(submissionData.proposal);
+
+    const urlStatus = await Promise.all(
+      new Array(...allUrlsInProposal).map(async (url) => {
+        return { url: url, isSafe: await verifyUrlisGood(url) };
+      }),
+    );
+
+    let isUrlSafe = true;
+
+    urlStatus.forEach(({ isSafe, url }) => {
+      if (!isSafe) {
+        isUrlSafe = false;
+      }
+
+      addError({
+        submission: submission as Submission<{ proposal: string }>,
+        key: "proposal",
+        error: `Url: ${url} is considered to be harmful. Please remove it from the proposal`,
+      });
+    });
+
+    if (!isUrlSafe) {
+      return json({ submission }, { status: 400 });
+    }
+
     await editProposal({
       createdBy: userId,
       gigId: id,

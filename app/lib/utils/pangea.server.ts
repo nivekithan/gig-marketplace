@@ -3,6 +3,7 @@ import {
   IPIntelService,
   Intel,
   PangeaConfig,
+  URLIntelService,
   UserIntelService,
 } from "pangea-node-sdk";
 import { env } from "./env.server";
@@ -68,4 +69,13 @@ async function isPasswordBreachedImpl(hash: string) {
   const isBreached = res.result.data.found_in_breach;
 
   return isBreached;
+}
+
+export async function verifyUrlisGood(url: string) {
+  const urlIntel = new URLIntelService(env.PANGEA_AUTHN_TOKEN, pangeaConfig);
+  const res = await urlIntel.reputation(url);
+
+  const isConsideredHarmfull = res.result.data.score > 90;
+
+  return !isConsideredHarmfull;
 }

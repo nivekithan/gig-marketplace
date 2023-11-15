@@ -30,6 +30,9 @@ import { GigInfo } from "~/components/GigInfo";
 import { CornerRightUp } from "lucide-react";
 import { addCreditsToUser } from "~/models/user.server";
 import { db } from "~/lib/utils/db.server";
+import getUrls from "get-urls";
+import { verifyUrlisGood } from "~/lib/utils/pangea.server";
+import { addError } from "~/lib/utils/conform.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUser(request);
@@ -53,6 +56,32 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const { description, id, name, type } = submission.value;
   if (type === "edit") {
+    const allUrlsInDescription = getUrls(description);
+
+    const urlStatus = await Promise.all(
+      new Array(...allUrlsInDescription).map(async (url) => {
+        return { url: url, isSafe: await verifyUrlisGood(url) };
+      }),
+    );
+
+    let isUrlSafe = true;
+
+    urlStatus.forEach(({ isSafe, url }) => {
+      if (!isSafe) {
+        isUrlSafe = false;
+      }
+
+      addError({
+        submission,
+        key: "description",
+        error: `Url: ${url} is considered to be harmful. Please remove it from the description`,
+      });
+    });
+
+    if (!isUrlSafe) {
+      return json({ submission }, { status: 400 });
+    }
+
     const updatedGig = await editGigs({
       createdBy: userId,
       description,
@@ -164,12 +193,6 @@ function SingleGig({
       });
     },
   });
-
-  useEffect(() => {
-    if (!isSubmitingForm) {
-      setIsSheetOpen(false);
-    }
-  }, [isSubmitingForm]);
 
   return (
     <Sheet open={isSheetOpen} onOpenChange={(v) => setIsSheetOpen(v)}>
