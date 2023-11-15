@@ -9,25 +9,29 @@ import {
 import {
   Await,
   Form,
+  Link,
   useActionData,
   useFetcher,
   useLoaderData,
   useNavigation,
 } from "@remix-run/react";
+import { ArrowsUpFromLine } from "lucide-react";
 import { Suspense } from "react";
 import { ClipLoader } from "react-spinners";
 import { z } from "zod";
-import { ExpandedGigInfo } from "~/components/GigInfo";
+import { CompactGigInfo, ExpandedGigInfo, GigInfo } from "~/components/GigInfo";
 import { InputErrors, InputField } from "~/components/inputField";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
+import { TextTitle } from "~/components/ui/text";
 import { Textarea } from "~/components/ui/textarea";
 import {
   ClientGigRow,
   finishGig,
+  getSimilarGigs,
   gigById,
   whiteLabelGigs,
 } from "~/models/gigs.server";
@@ -62,6 +66,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     throw new Response("Not found", { status: 404 });
   }
 
+  const similarGigs = getSimilarGigs(gig).then((gig) =>
+    gig.map(whiteLabelGigs),
+  );
   const isGigCreatedByUser = userId === gig.createdBy;
   const proposalByUser = (async () => {
     if (isGigCreatedByUser) {
@@ -104,6 +111,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     noOfProposal: numberOfProposals,
     isCreatedByUser: userId === gig.createdBy,
     allProposalsToGig: allProposalsToGig,
+    similarGigs: similarGigs,
   });
 }
 
@@ -158,22 +166,74 @@ const CreateOrEditProposalSchema = z.object({
     .min(100, "Proposal must be atleast 100 characters long"),
   type: z.union([z.literal("create"), z.literal("edit"), z.literal("delete")]),
 });
+
 export default function Component() {
   const { gig, noOfProposal, isCreatedByUser } = useLoaderData<typeof loader>();
 
   return (
-    <main className="w-[720px]">
-      <ExpandedGigInfo
-        name={gig.name}
-        createdAt={gig.createdAt}
-        description={gig.description}
-        skills={gig.skills}
-        price={gig.price}
-        noOfProposal={noOfProposal}
-      />
-      <Separator className="my-6" />
-      {isCreatedByUser ? <AllProposal /> : <AddProposalForm />}
-    </main>
+    <div className="flex justify-between">
+      <div className="flex-1">
+        <main className="w-[720px]">
+          <ExpandedGigInfo
+            name={gig.name}
+            createdAt={gig.createdAt}
+            description={gig.description}
+            skills={gig.skills}
+            price={gig.price}
+            noOfProposal={noOfProposal}
+          />
+          <Separator className="my-6" />
+          {isCreatedByUser ? <AllProposal /> : <AddProposalForm />}
+        </main>
+      </div>
+      <div className="min-h-screen border-l">
+        <SimilarGigs />
+      </div>
+    </div>
+  );
+}
+
+function SimilarGigsSkeleton() {
+  return (
+    <div className="px-4 flex flex-col gap-y-4 w-[420px]">
+      <Skeleton className="w-[390px] h-[24px] rounded-md" />
+      <Skeleton className="w-[420px] h-[200px] rounded-md" />
+      <Skeleton className="w-[420px] h-[200px] rounded-md" />
+      <Skeleton className="w-[420px] h-[200px] rounded-md" />
+    </div>
+  );
+}
+function SimilarGigs() {
+  const { similarGigs } = useLoaderData<typeof loader>();
+  return (
+    <Suspense fallback={<SimilarGigsSkeleton />}>
+      <Await resolve={similarGigs}>
+        {(gigs) => {
+          if (gigs.length === 0) {
+            return null;
+          }
+
+          return (
+            <div className="px-4 flex flex-col gap-y-4 w-[420px]">
+              <TextTitle>Related Gigs</TextTitle>
+
+              {gigs.map((gig) => {
+                return (
+                  <div
+                    key={gig.id}
+                    className="max-w-[420px] border p-4 rounded-md transition-colors hover:border-primary"
+                  >
+                    <Link to={`/app/gig/g/${gig.id}`}>
+                      <GigInfo {...gig} />
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        }}
+      </Await>
+    </Suspense>
   );
 }
 

@@ -25,6 +25,41 @@ export async function gigById({ id }: { id: string }) {
   return gigs[0];
 }
 
+function convertGigToEmbeddableContent({
+  description,
+  name,
+  skills,
+}: {
+  name: string;
+  description: string;
+  skills: string[];
+}) {
+  return `${name}\n${description}\n Required Skills: ${skills.join(",")}`;
+}
+
+export async function getSimilarGigs({
+  name,
+  description,
+  skills,
+  id,
+}: GigRow) {
+  const embeddingContent = convertGigToEmbeddableContent({
+    description,
+    name,
+    skills,
+  });
+  const embedding = await getEmbedding(embeddingContent);
+
+  const similarGigs = await db
+    .select()
+    .from(gigsTable)
+    .where(and(eq(gigsTable.status, "CREATED"), ne(gigsTable.id, id)))
+    .orderBy(sql`${gigsTable.embedding} <=> ${JSON.stringify(embedding)}`)
+    .limit(5);
+
+  return similarGigs;
+}
+
 export async function getAllGigsProposedByUser({ userId }: { userId: string }) {
   const gigs = await db
     .select({
@@ -57,9 +92,11 @@ export async function createGigs({
   createdByUserId: string;
   skills: ValidGigSkills[];
 }) {
-  const embeddingContent = `${name}\n${description}\n Required Skills: ${skills.join(
-    ",",
-  )}`;
+  const embeddingContent = convertGigToEmbeddableContent({
+    name,
+    description,
+    skills,
+  });
   const embedding = await getEmbedding(embeddingContent);
 
   const createdGigs = await db
