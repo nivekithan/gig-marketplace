@@ -123,7 +123,7 @@ export async function withdrawCredits({
 }: {
   userId: string;
   credits: number;
-  saveTransaction: boolean;
+  saveTransaction?: boolean;
 }) {
   if (saveTransaction) {
     await db.transaction(async (db) => {
@@ -147,3 +147,5 @@ export async function withdrawCredits({
 export function whiteLabelUser({ email, id, name, skills }: UserRow) {
   return { email, id, name, skills };
 }
+
+export type ClientUSerRow = ReturnType<typeof whiteLabelUser>;

@@ -37,6 +37,12 @@ export const gigsTable = pgTable("gigs", {
     .references(() => userTable.id),
 });
 
+export const proposalStatusEnum = pgEnum("proposal_status", [
+  "OPEN",
+  "ACCEPTED",
+  "REJECTED",
+]);
+
 export const proposalTable = pgTable(
   "proposal",
   {
@@ -48,6 +54,7 @@ export const proposalTable = pgTable(
       .notNull()
       .references(() => gigsTable.id),
     proposal: text("proposal").notNull(),
+    status: proposalStatusEnum("status").default("OPEN").notNull(),
     createdBy: text("created_by")
       .notNull()
       .references(() => userTable.id),
