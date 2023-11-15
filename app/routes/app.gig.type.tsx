@@ -1,35 +1,27 @@
-import { LoaderFunctionArgs, json, redirect } from "@remix-run/node";
-import { Link, Outlet, useLoaderData } from "@remix-run/react";
+import { Link, Outlet, useLocation } from "@remix-run/react";
 import { match } from "path-to-regexp";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export default function Component() {
+  const pathName = useLocation().pathname;
   const decodeUri = match<{ gigType: string }>(
     "/app/gig/type/:gigType/:left*",
     {
       decode: decodeURIComponent,
     },
   );
-  const url = new URL(request.url);
-
-  const decodedUri = decodeUri(url.pathname);
+  const decodedUri = decodeUri(pathName);
 
   if (!decodedUri) {
-    throw redirect("/app/gig/type/latest");
+    throw new Error("Unexpected Error: Unkown path");
   }
 
   const gigType = decodedUri.params["gigType"];
 
-  return json({ gigType: gigType });
-}
-
-export default function Component() {
-  const { gigType } = useLoaderData<typeof loader>();
-
   return (
     <div>
       <div>
-        <Tabs defaultValue={gigType}>
+        <Tabs value={gigType}>
           <TabsList>
             <TabsTrigger value="latest" asChild>
               <Link to="/app/gig/type/latest">Latest Gigs</Link>

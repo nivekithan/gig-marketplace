@@ -1,6 +1,8 @@
 import { LoaderFunctionArgs, json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { GigInfo } from "~/components/GigInfo";
+import { Button } from "~/components/ui/button";
+import { TextTitle } from "~/components/ui/text";
 import {
   getAllAssignedGigsForUser,
   whiteLabelGigs,
@@ -17,7 +19,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Component() {
   const { gigs } = useLoaderData<typeof loader>();
 
-  return (
+  return gigs.length === 0 ? (
+    <AssignedPageEmptyState />
+  ) : (
     <div className="max-w-[720px] flex flex-col gap-y-3">
       {gigs.map((gig) => {
         return (
@@ -31,6 +35,22 @@ export default function Component() {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function AssignedPageEmptyState() {
+  return (
+    <div className="flex flex-col gap-y-6">
+      <div className="flex flex-col gap-y-3">
+        <TextTitle>You have not assigned to any gigs yet</TextTitle>
+        <p>Click below to search for other gigs</p>
+      </div>
+      <div>
+        <Button asChild>
+          <Link to="/app/gig/type/latest">Serach gigs</Link>
+        </Button>
+      </div>
     </div>
   );
 }
