@@ -1,13 +1,6 @@
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import { Form, Link, Outlet, useLocation } from "@remix-run/react";
-import {
-  Bell,
-  CreditCard,
-  History,
-  Home,
-  LogOut,
-  UserCircle2,
-} from "lucide-react";
+import { CreditCard, History, Home, LogOut, UserCircle2 } from "lucide-react";
 import { LinkGroup, LinkHeader, LinkItem } from "~/components/linkGroup";
 import { Button } from "~/components/ui/button";
 import { authSessionStorage, getAuthSession } from "~/session";
@@ -34,7 +27,7 @@ export default function Component() {
 
   return (
     <main className="flex container-2xl">
-      <div className="min-w-[15%] border-r min-h-screen">
+      <div className="min-w-[15%] border-r h-screen sticky top-0">
         <div className="mt-4 flex flex-col gap-y-3">
           <div className="px-4">
             <Button

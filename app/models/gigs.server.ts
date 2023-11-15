@@ -98,7 +98,7 @@ export async function getSimilarGigs({
     .from(gigsTable)
     .where(and(eq(gigsTable.status, "CREATED"), ne(gigsTable.id, id)))
     .orderBy(sql`${gigsTable.embedding} <=> ${JSON.stringify(embedding)}`)
-    .limit(5);
+    .limit(3);
 
   return similarGigs;
 }

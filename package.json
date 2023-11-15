@@ -43,6 +43,7 @@
     "react-multi-select-component": "^4.3.4",
     "react-select": "^5.8.0",
     "react-spinners": "^0.13.8",
+    "react-textarea-autosize": "^8.5.3",
     "shadcn-ui": "^0.4.1",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",

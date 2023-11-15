@@ -28,7 +28,7 @@ import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
 import { TextTitle } from "~/components/ui/text";
-import { Textarea } from "~/components/ui/textarea";
+import { AutoSizeTextArea } from "~/components/ui/textarea";
 import {
   ClientGigRow,
   finishGig,
@@ -187,7 +187,7 @@ export default function Component() {
           {isCreatedByUser ? <AllProposal /> : <AddProposalForm />}
         </main>
       </div>
-      <div className="min-h-screen border-l">
+      <div className="min-h-screen sticky top-0 border-l">
         <SimilarGigs />
       </div>
     </div>
@@ -330,11 +330,7 @@ function SingleAcceptedOrCompletedProposal({
           {gig.status === "COMPLETED" ? "Gig Completed" : "ACCEPTED"}{" "}
         </Badge>
       </p>
-      <Textarea
-        defaultValue={proposal.proposal}
-        readOnly
-        className="h-[120px]"
-      />
+      <AutoSizeTextArea defaultValue={proposal.proposal} readOnly />
       {gig.status === "COMPLETED" ? null : (
         <finishGigFetcher.Form
           className="flex items-center gap-x-2"
@@ -394,11 +390,7 @@ function SingleOpenProposal({
         <span className="text-muted-foreground text-sm"> Proposed By:</span>{" "}
         {user.name || user.email}
       </p>
-      <Textarea
-        defaultValue={proposal.proposal}
-        readOnly
-        className="h-[120px]"
-      />
+      <AutoSizeTextArea defaultValue={proposal.proposal} readOnly />
       <updateProposalFetcher.Form
         className="flex items-center gap-x-2"
         method="post"
@@ -490,12 +482,11 @@ function AddProposalForm() {
                     <Badge>{proposalStatus}</Badge>
                   )}
                 </div>
-                <Textarea
+                <AutoSizeTextArea
                   placeholder="Your proposal..."
                   {...conform.textarea(proposalField)}
                   defaultValue={proposal ? proposal.proposal : undefined}
                   readOnly={proposalStatus !== "OPEN"}
-                  className="h-[120px]"
                 />
                 <InputErrors errors={proposalField.errors} />
               </InputField>

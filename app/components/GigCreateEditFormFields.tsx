@@ -5,6 +5,7 @@ import { Label } from "./ui/label";
 import { useState } from "react";
 import Select, { MultiValue } from "react-select";
 import { ValidGigSkills, validSkills } from "~/models/skills";
+import { AutoSizeTextArea } from "./ui/textarea";
 
 export type GigCreateOrEditFields = {
   name: FieldConfig<string>;
@@ -38,7 +39,7 @@ export function GigCreateOrEditFields({
       </InputField>
       <InputField>
         <Label>Gig Description:</Label>
-        <Input
+        <AutoSizeTextArea
           {...conform.input(description)}
           defaultValue={defaultDescription}
         />
