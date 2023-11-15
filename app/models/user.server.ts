@@ -3,6 +3,10 @@ import { db } from "~/lib/utils/db.server";
 import { eq, sql } from "drizzle-orm";
 import { paymentHistoryTable, userTable } from "./schema.server";
 import { ValidGigSkills } from "./skills";
+import {
+  storeBuyingCredit,
+  storeWithdrawingCredit,
+} from "~/lib/utils/pangea.server";
 
 export type UserRow = typeof userTable.$inferSelect;
 
@@ -105,14 +109,20 @@ export async function addCreditsToUser({
   userId: string;
   credits: number;
 }) {
-  await db.transaction(async (db) => {
-    await db
+  await db.transaction(async (tx) => {
+    const currentUserCredits = await getUserCredits({ userId });
+    await tx
       .insert(paymentHistoryTable)
       .values({ userId, orderValue: credits, orderType: "add" });
-    await db
+    await tx
       .update(userTable)
       .set({ credits: sql`${userTable.credits} + ${credits}` })
       .where(eq(userTable.id, userId));
+    await storeBuyingCredit({
+      userId,
+      oldCredit: currentUserCredits,
+      newCredit: currentUserCredits + credits,
+    });
   });
 }
 
@@ -127,6 +137,7 @@ export async function withdrawCredits({
 }) {
   if (saveTransaction) {
     await db.transaction(async (db) => {
+      const currentUserCredits = await getUserCredits({ userId });
       await db
         .insert(paymentHistoryTable)
         .values({ userId, orderValue: credits, orderType: "withdraw" });
@@ -135,12 +146,27 @@ export async function withdrawCredits({
         .update(userTable)
         .set({ credits: sql`${userTable.credits} - ${credits}` })
         .where(eq(userTable.id, userId));
+      await storeWithdrawingCredit({
+        userId,
+        oldCredit: currentUserCredits,
+        newCredit: currentUserCredits + credits,
+      });
     });
   } else {
-    await db
-      .update(userTable)
-      .set({ credits: sql`${userTable.credits} - ${credits}` })
-      .where(eq(userTable.id, userId));
+    db.transaction(async (tx) => {
+      const currentUserCredits = await getUserCredits({ userId });
+
+      await tx
+        .update(userTable)
+        .set({ credits: sql`${userTable.credits} - ${credits}` })
+        .where(eq(userTable.id, userId));
+
+      await storeWithdrawingCredit({
+        userId,
+        oldCredit: currentUserCredits,
+        newCredit: currentUserCredits + credits,
+      });
+    });
   }
 }
 

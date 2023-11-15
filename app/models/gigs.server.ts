@@ -8,6 +8,7 @@ import {
 } from "./schema.server";
 import { ValidGigSkills } from "./skills";
 import { getEmbedding } from "~/lib/utils/openai.server";
+import { storeRewardingCredit } from "~/lib/utils/pangea.server";
 
 export type GigRow = typeof gigsTable.$inferSelect;
 
@@ -246,7 +247,7 @@ export async function finishGig({ id }: { id: string }) {
     }
 
     const accpetedProposal = await tx
-      .select({ userId: userTable.id })
+      .select({ userId: userTable.id, userCredits: userTable.credits })
       .from(proposalTable)
       .where(
         and(eq(proposalTable.gigId, id), eq(proposalTable.status, "ACCEPTED")),
@@ -260,6 +261,7 @@ export async function finishGig({ id }: { id: string }) {
     }
 
     const gigFinishedByUser = accpetedProposal[0].userId;
+    const userCredits = accpetedProposal[0].userCredits;
     const price = gig[0].price;
 
     console.log(gigFinishedByUser);
@@ -278,6 +280,12 @@ export async function finishGig({ id }: { id: string }) {
       .update(gigsTable)
       .set({ status: "COMPLETED" })
       .where(eq(gigsTable.id, id));
+
+    await storeRewardingCredit({
+      oldCredit: userCredits,
+      newCredit: userCredits + price,
+      userId: gigFinishedByUser,
+    });
   });
 }
 

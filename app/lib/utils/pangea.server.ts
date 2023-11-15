@@ -1,4 +1,5 @@
 import {
+  AuditService,
   EmbargoService,
   IPIntelService,
   Intel,
@@ -78,4 +79,67 @@ export async function verifyUrlisGood(url: string) {
   const isConsideredHarmfull = res.result.data.score > 90;
 
   return !isConsideredHarmfull;
+}
+
+export async function storeBuyingCredit({
+  userId,
+  newCredit,
+  oldCredit,
+}: {
+  userId: string;
+  oldCredit: number;
+  newCredit: number;
+}) {
+  const auditLog = new AuditService(env.PANGEA_AUTHN_TOKEN, pangeaConfig);
+  await auditLog.log({
+    action: "buy_credit",
+    actor: userId,
+    target: "credits",
+    old: oldCredit.toString(),
+    new: newCredit.toString(),
+    message: "User brought credits",
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export async function storeWithdrawingCredit({
+  newCredit,
+  oldCredit,
+  userId,
+}: {
+  userId: string;
+  oldCredit: number;
+  newCredit: number;
+}) {
+  const auditLog = new AuditService(env.PANGEA_AUTHN_TOKEN, pangeaConfig);
+  await auditLog.log({
+    action: "buy_credit",
+    actor: userId,
+    target: "credits",
+    old: oldCredit.toString(),
+    new: newCredit.toString(),
+    message: "User withdrawed credits",
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export async function storeRewardingCredit({
+  newCredit,
+  oldCredit,
+  userId,
+}: {
+  userId: string;
+  oldCredit: number;
+  newCredit: number;
+}) {
+  const auditLog = new AuditService(env.PANGEA_AUTHN_TOKEN, pangeaConfig);
+  await auditLog.log({
+    action: "buy_credit",
+    actor: userId,
+    target: "credits",
+    old: oldCredit.toString(),
+    new: newCredit.toString(),
+    message: "User was rewarded with credits",
+    timestamp: new Date().toISOString(),
+  });
 }
