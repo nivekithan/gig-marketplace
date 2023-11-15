@@ -42,6 +42,7 @@ export function GigCreateOrEditFields({
         <AutoSizeTextArea
           {...conform.input(description)}
           defaultValue={defaultDescription}
+          className="max-h-[320px]"
         />
         <InputErrors errors={description.errors} />
       </InputField>

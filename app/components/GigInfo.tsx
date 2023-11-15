@@ -19,7 +19,7 @@ export function CompactGigInfo({
     <div className="flex flex-col gap-y-3 max-w-[400px]">
       <div className="flex flex-col gap-y-2 items-start">
         <TextTitle className="text-md">{name}</TextTitle>
-        <p className="text-xs text-muted-foreground flex gap-x-2 items-center">
+        <p className="text-xs text-muted-foreground flex gap-x-2 items-center flex-wrap">
           <span>Posted on {postedBefore}</span>
           {status === "CREATED" ? null : (
             <Badge className="text-xs">{status}</Badge>
@@ -74,7 +74,7 @@ export function GigInfo({
         <p className="text-sm line-clamp-3">{description}</p>
       </div>
       <div className="flex items-center justify-between">
-        <div className="flex gap-x-2 flex-wrap">
+        <div className="flex gap-x-2 flex-wrap gap-y-2 flex-1">
           {skills.map((skill) => {
             return (
               <Badge id="skill" variant="secondary" key={skill}>
@@ -84,7 +84,7 @@ export function GigInfo({
           })}
         </div>
         <Button asChild variant="secondary">
-          <p className="font-semibold text-sm">$ {price}</p>
+          <p className="font-semibold text-sm flex-initial">$ {price}</p>
         </Button>
       </div>
     </div>

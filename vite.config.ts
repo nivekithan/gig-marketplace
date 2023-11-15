@@ -12,5 +12,11 @@ export default ({ mode }: { mode: string }) => {
       tsconfigPaths(),
       cjsInterop({ dependencies: ["react-spinners", "bcryptjs", "hash.js"] }),
     ],
+    optimizeDeps: {
+      exclude: [
+        "@node-rs/crc32-linux-x64-musl",
+        "@node-rs/crc32-linux-x64-gnu",
+      ],
+    },
   });
 };

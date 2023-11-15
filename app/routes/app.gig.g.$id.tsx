@@ -246,9 +246,10 @@ export default function Component() {
           />
           <Separator className="my-6" />
           {isCreatedByUser ? <AllProposal /> : <AddProposalForm />}
+          <div className="w-full h-[320px]"></div>
         </main>
       </div>
-      <div className="h-screen sticky top-0 border-l">
+      <div className="h-screen sticky top-0 border-l ">
         <SimilarGigs />
       </div>
     </div>

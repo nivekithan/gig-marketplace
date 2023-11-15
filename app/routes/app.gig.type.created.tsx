@@ -38,6 +38,7 @@ import getUrls from "get-urls";
 import { verifyUrlisGood } from "~/lib/utils/pangea.server";
 import { addError } from "~/lib/utils/conform.server";
 import * as Spinners from "react-spinners";
+import { ScrollArea } from "~/components/ui/scroll-area";
 
 const ClipLoader = Spinners.ClipLoader;
 
@@ -231,6 +232,7 @@ function SingleGig({
           </SheetTrigger>
         </div>
       </div>
+
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Edit Gig</SheetTitle>
