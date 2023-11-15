@@ -25,7 +25,12 @@ import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Textarea } from "~/components/ui/textarea";
-import { finishGig, gigById, whiteLabelGigs } from "~/models/gigs.server";
+import {
+  ClientGigRow,
+  finishGig,
+  gigById,
+  whiteLabelGigs,
+} from "~/models/gigs.server";
 import {
   ClientProposalRow,
   acceptProposalForGig,
@@ -197,9 +202,10 @@ function AllProposal() {
                         user={proposal.user}
                       />
                     ) : (
-                      <SingleAcceptedProposal
+                      <SingleAcceptedOrCompletedProposal
                         proposal={proposal.proposal}
                         user={proposal.user}
+                        gig={gig}
                       />
                     )}
                     <Separator />
@@ -216,12 +222,14 @@ function AllProposal() {
 
 const FinishGigSchema = z.object({ type: z.literal("finish") });
 
-function SingleAcceptedProposal({
+function SingleAcceptedOrCompletedProposal({
   proposal,
   user,
+  gig,
 }: {
   proposal: ClientProposalRow;
   user: ClientUSerRow;
+  gig: ClientGigRow;
 }) {
   const finishGigFetcher = useFetcher<typeof action>();
 
@@ -242,28 +250,32 @@ function SingleAcceptedProposal({
           <span className="text-muted-foreground text-sm"> Proposed By:</span>{" "}
           {user.name || user.email}
         </span>
-        <Badge>Accepted</Badge>
+        <Badge>
+          {gig.status === "COMPLETED" ? "Gig Completed" : "ACCEPTED"}{" "}
+        </Badge>
       </p>
       <Textarea
         defaultValue={proposal.proposal}
         readOnly
         className="h-[120px]"
       />
-      <finishGigFetcher.Form
-        className="flex items-center gap-x-2"
-        method="post"
-        {...finishGigForm.props}
-      >
-        <Button
-          type="submit"
-          name={type.name}
-          value="finish"
-          className="flex gap-x-2"
+      {gig.status === "COMPLETED" ? null : (
+        <finishGigFetcher.Form
+          className="flex items-center gap-x-2"
+          method="post"
+          {...finishGigForm.props}
         >
-          Finish Gig
-          <ClipLoader loading={isFinishingGig} color="white" size={16} />
-        </Button>
-      </finishGigFetcher.Form>
+          <Button
+            type="submit"
+            name={type.name}
+            value="finish"
+            className="flex gap-x-2"
+          >
+            Finish Gig
+            <ClipLoader loading={isFinishingGig} color="white" size={16} />
+          </Button>
+        </finishGigFetcher.Form>
+      )}
     </div>
   );
 }
