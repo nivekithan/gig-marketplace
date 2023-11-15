@@ -59,6 +59,7 @@ function SingleGig({
   skills,
   id,
   price,
+  status,
 }: ClientGigRow) {
   return (
     <Link
@@ -71,6 +72,7 @@ function SingleGig({
         name={name}
         skills={skills}
         price={price}
+        status={status}
       />
     </Link>
   );

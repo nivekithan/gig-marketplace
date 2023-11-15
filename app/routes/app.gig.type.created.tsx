@@ -135,6 +135,7 @@ function SingleGig({
   createdAt,
   price,
   skills,
+  status,
 }: ClientGigRow) {
   const editGigFetcher = useFetcher<typeof action>();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -184,6 +185,7 @@ function SingleGig({
             name={name}
             skills={skills}
             price={price}
+            status={status}
           />
         </Link>
         <div>

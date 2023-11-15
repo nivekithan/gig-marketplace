@@ -3,6 +3,7 @@ import formatRelative from "date-fns/formatRelative";
 import { Badge } from "./ui/badge";
 import { ValidGigSkills } from "~/models/skills";
 import { Button } from "./ui/button";
+import { ClientGigRow } from "~/models/gigs.server";
 
 export function GigInfo({
   name,
@@ -10,20 +11,25 @@ export function GigInfo({
   description,
   createdAt,
   price,
+  status,
 }: {
   name: string;
   skills: ValidGigSkills[];
   description: string;
   createdAt: string;
   price: number;
+  status: ClientGigRow["status"];
 }) {
   const postedBefore = formatRelative(new Date(createdAt), new Date());
   return (
     <div className="flex flex-col gap-y-3">
       <div className="flex flex-col gap-y-2 items-start">
         <TextTitle className="text-md">{name}</TextTitle>
-        <p className="text-xs text-muted-foreground">
-          Posted on {postedBefore}
+        <p className="text-xs text-muted-foreground flex gap-x-2 items-center">
+          <span>Posted on {postedBefore}</span>
+          {status === "CREATED" ? null : (
+            <Badge className="text-xs">{status}</Badge>
+          )}
         </p>
         <p className="text-sm line-clamp-3">{description}</p>
       </div>
