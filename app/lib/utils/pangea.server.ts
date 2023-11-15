@@ -171,7 +171,7 @@ export async function storeRewardingCredit({
 }) {
   const auditLog = new AuditService(env.PANGEA_AUTHN_TOKEN, pangeaConfig);
   await auditLog.log({
-    action: "buy_credit",
+    action: "reward_credit",
     actor: userId,
     target: "credits",
     old: oldCredit.toString(),
