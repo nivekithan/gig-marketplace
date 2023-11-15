@@ -8,7 +8,8 @@ import {
 } from "./schema.server";
 import { ValidGigSkills } from "./skills";
 import { getEmbedding } from "~/lib/utils/openai.server";
-import { storeRewardingCredit } from "~/lib/utils/pangea.server";
+import { lruCache, storeRewardingCredit } from "~/lib/utils/pangea.server";
+import cachified from "cachified";
 
 export type GigRow = typeof gigsTable.$inferSelect;
 
@@ -87,21 +88,28 @@ export async function getSimilarGigs({
   skills,
   id,
 }: GigRow) {
-  const embeddingContent = convertGigToEmbeddableContent({
-    description,
-    name,
-    skills,
+  return cachified({
+    key: `similar-gigs-${id}`,
+    cache: lruCache,
+    ttl: 1000 * 60 * 5,
+    async getFreshValue() {
+      const embeddingContent = convertGigToEmbeddableContent({
+        description,
+        name,
+        skills,
+      });
+      const embedding = await getEmbedding(embeddingContent);
+
+      const similarGigs = await db
+        .select()
+        .from(gigsTable)
+        .where(and(eq(gigsTable.status, "CREATED"), ne(gigsTable.id, id)))
+        .orderBy(sql`${gigsTable.embedding} <=> ${JSON.stringify(embedding)}`)
+        .limit(3);
+
+      return similarGigs;
+    },
   });
-  const embedding = await getEmbedding(embeddingContent);
-
-  const similarGigs = await db
-    .select()
-    .from(gigsTable)
-    .where(and(eq(gigsTable.status, "CREATED"), ne(gigsTable.id, id)))
-    .orderBy(sql`${gigsTable.embedding} <=> ${JSON.stringify(embedding)}`)
-    .limit(3);
-
-  return similarGigs;
 }
 
 export async function getAllGigsProposedByUser({ userId }: { userId: string }) {
