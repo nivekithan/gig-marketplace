@@ -19,7 +19,6 @@ import {
 import getUrls from "get-urls";
 import { Clock } from "lucide-react";
 import { Suspense } from "react";
-import { ClipLoader } from "react-spinners";
 import { z } from "zod";
 import { ExpandedGigInfo, GigInfo } from "~/components/GigInfo";
 import { InputErrors, InputField } from "~/components/inputField";
@@ -55,6 +54,9 @@ import {
 } from "~/models/proposal.server";
 import { ClientUSerRow, whiteLabelUser } from "~/models/user.server";
 import { requireUser } from "~/session";
+import * as Spinners from "react-spinners";
+
+const ClipLoader = Spinners.ClipLoader;
 
 export function meta(): ReturnType<MetaFunction> {
   return [{ title: "Gig Marketplace" }];

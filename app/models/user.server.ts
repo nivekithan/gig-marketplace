@@ -1,4 +1,3 @@
-import { hash } from "bcryptjs";
 import { db } from "~/lib/utils/db.server";
 import { eq, sql } from "drizzle-orm";
 import { paymentHistoryTable, userTable } from "./schema.server";
@@ -7,6 +6,9 @@ import {
   storeBuyingCredit,
   storeWithdrawingCredit,
 } from "~/lib/utils/pangea.server";
+import * as bcrypt from "bcryptjs";
+
+const hash = bcrypt.hash;
 
 export type UserRow = typeof userTable.$inferSelect;
 

@@ -1,5 +1,5 @@
 import { TextTitle } from "./ui/text";
-import formatRelative from "date-fns/formatRelative";
+import { formatRelative } from "date-fns";
 import { Badge } from "./ui/badge";
 import { ValidGigSkills } from "~/models/skills";
 import { Button } from "./ui/button";

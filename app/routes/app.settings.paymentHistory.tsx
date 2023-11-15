@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs, MetaFunction, json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import format from "date-fns/format";
+import { format } from "date-fns";
 import { Button } from "~/components/ui/button";
 import {
   Table,

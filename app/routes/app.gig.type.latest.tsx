@@ -6,7 +6,6 @@ import {
   useNavigation,
   useSearchParams,
 } from "@remix-run/react";
-import { ClipLoader } from "react-spinners";
 import { GigInfo } from "~/components/GigInfo";
 import { InputField } from "~/components/inputField";
 import { Button } from "~/components/ui/button";
@@ -19,6 +18,11 @@ import {
   whiteLabelGigs,
 } from "~/models/gigs.server";
 import { requireUser } from "~/session";
+import * as Spinners from "react-spinners";
+
+const ClipLoader = Spinners.ClipLoader;
+
+console.log({ ClipLoader });
 
 export function meta(): ReturnType<MetaFunction> {
   return [{ title: "Latests gigs" }];

@@ -20,7 +20,9 @@ import {
   getAuthSession,
   requireAnonymous,
 } from "~/session";
-import { ClipLoader } from "react-spinners";
+import * as Spinners from "react-spinners";
+
+const ClipLoader = Spinners.ClipLoader;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireAnonymous(request);

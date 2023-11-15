@@ -29,7 +29,6 @@ import { z } from "zod";
 import { conform, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
 import { useState } from "react";
-import { ClipLoader } from "react-spinners";
 import { ValidGigSkills, validSkills } from "~/models/skills";
 import { GigInfo } from "~/components/GigInfo";
 import { CornerRightUp } from "lucide-react";
@@ -38,6 +37,9 @@ import { db } from "~/lib/utils/db.server";
 import getUrls from "get-urls";
 import { verifyUrlisGood } from "~/lib/utils/pangea.server";
 import { addError } from "~/lib/utils/conform.server";
+import * as Spinners from "react-spinners";
+
+const ClipLoader = Spinners.ClipLoader;
 
 export function meta(): ReturnType<MetaFunction> {
   return [{ title: "All created gigs" }];

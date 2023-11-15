@@ -23,7 +23,9 @@ import { requireUser } from "~/session";
 import Select, { MultiValue } from "react-select";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import { ClipLoader } from "react-spinners";
+import * as Spinners from "react-spinners";
+
+const ClipLoader = Spinners.ClipLoader;
 
 export function meta(): ReturnType<MetaFunction> {
   return [{ title: "Settings | Profile" }];

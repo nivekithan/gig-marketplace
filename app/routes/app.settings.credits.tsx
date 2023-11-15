@@ -9,7 +9,6 @@ import {
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ClipLoader } from "react-spinners";
 import { z } from "zod";
 import { InputErrors, InputField } from "~/components/inputField";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
@@ -37,6 +36,9 @@ import {
   withdrawCredits,
 } from "~/models/user.server";
 import { requireUser } from "~/session";
+import * as Spinners from "react-spinners";
+
+const ClipLoader = Spinners.ClipLoader;
 
 export function meta(): ReturnType<MetaFunction> {
   return [{ title: "Settings | Credits" }];

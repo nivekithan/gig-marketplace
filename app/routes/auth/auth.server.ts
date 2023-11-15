@@ -1,7 +1,8 @@
-import { compare } from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 import { isPasswordBreached } from "~/lib/utils/pangea.server";
 import { createUser, getUserByEmail } from "~/models/user.server";
 
+const compare = bcrypt.compare;
 export type GetUserIdReturns =
   | {
       status: "INVALID_PASSWORD";

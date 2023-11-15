@@ -8,7 +8,6 @@ import {
   redirect,
 } from "@remix-run/node";
 import { Form, useActionData, useNavigation } from "@remix-run/react";
-import { ClipLoader } from "react-spinners";
 import { z } from "zod";
 import { GigCreateOrEditFields } from "~/components/GigCreateEditFormFields";
 import { Button } from "~/components/ui/button";
@@ -21,6 +20,9 @@ import { getUserCredits, withdrawCredits } from "~/models/user.server";
 import { requireUser } from "~/session";
 import getUrls from "get-urls";
 import { verifyUrlisGood as verifyUrlIsGood } from "~/lib/utils/pangea.server";
+import * as Spinners from "react-spinners";
+
+const ClipLoader = Spinners.ClipLoader;
 
 export function meta(): ReturnType<MetaFunction> {
   return [{ title: "Create gig" }];
