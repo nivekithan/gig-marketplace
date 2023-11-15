@@ -36,6 +36,9 @@ const AutoSizeTextArea = React.forwardRef<
       )}
       ref={ref}
       {...props}
+      {...(props.readOnly
+        ? { value: props.value || props.defaultValue, defaultValue: undefined }
+        : {})}
       style={undefined}
     />
   );

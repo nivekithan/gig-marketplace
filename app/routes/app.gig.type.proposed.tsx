@@ -22,7 +22,7 @@ export default function Component() {
   return gigs.length === 0 ? (
     <ProposedEmptyState />
   ) : (
-    <div>
+    <div className="flex flex-col gap-y-3">
       {gigs.map((gig) => {
         return <SingleGig {...gig} key={gig.id} />;
       })}

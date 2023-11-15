@@ -392,7 +392,7 @@ function SingleAcceptedOrCompletedProposal({
           {gig.status === "COMPLETED" ? "Gig Completed" : "ACCEPTED"}{" "}
         </Badge>
       </p>
-      <AutoSizeTextArea defaultValue={proposal.proposal} readOnly />
+      <AutoSizeTextArea value={proposal.proposal} readOnly />
       {gig.status === "COMPLETED" ? null : (
         <finishGigFetcher.Form
           className="flex items-center gap-x-2"
@@ -452,17 +452,13 @@ function SingleOpenProposal({
         <span className="text-muted-foreground text-sm"> Proposed By:</span>{" "}
         {user.name || user.email}
       </p>
-      <AutoSizeTextArea defaultValue={proposal.proposal} readOnly />
+      <AutoSizeTextArea value={proposal.proposal} readOnly />
       <updateProposalFetcher.Form
         className="flex items-center gap-x-2"
         method="post"
         {...proposalForm.props}
       >
-        <input
-          hidden
-          {...conform.input(proposalId)}
-          defaultValue={proposal.id}
-        />
+        <input hidden {...conform.input(proposalId)} value={proposal.id} />
 
         <Button
           type="submit"
@@ -549,6 +545,7 @@ function AddProposalForm() {
                   {...conform.textarea(proposalField)}
                   defaultValue={proposal ? proposal.proposal : undefined}
                   readOnly={proposalStatus !== "OPEN"}
+                  key={gig.id}
                 />
                 <InputErrors errors={proposalField.errors} />
               </InputField>
