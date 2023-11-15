@@ -4,7 +4,7 @@ import {
   json,
   redirect,
 } from "@remix-run/node";
-import { Form } from "@remix-run/react";
+import { Form, useNavigation } from "@remix-run/react";
 import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -20,6 +20,7 @@ import {
   getAuthSession,
   requireAnonymous,
 } from "~/session";
+import { ClipLoader } from "react-spinners";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireAnonymous(request);
@@ -79,6 +80,10 @@ export default function Component() {
     },
   });
 
+  const navigation = useNavigation();
+  const isSubmittingForm =
+    navigation.state === "loading" || navigation.state === "submitting";
+
   return (
     <main className="container min-h-screen grid place-items-center">
       <Card>
@@ -101,7 +106,11 @@ export default function Component() {
               <Input {...conform.input(password)} type="password" />
               <InputErrors errors={password.errors} />
             </InputField>
-            <Button>Submit</Button>
+
+            <Button className="flex gap-x-2">
+              Submit
+              <ClipLoader color="white" size={16} loading={isSubmittingForm} />
+            </Button>
           </Form>
         </CardContent>
       </Card>

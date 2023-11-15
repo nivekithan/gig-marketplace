@@ -25,6 +25,37 @@ export async function gigById({ id }: { id: string }) {
   return gigs[0];
 }
 
+export async function getAllAssignedGigsForUser({
+  userId,
+}: {
+  userId: string;
+}) {
+  const gigs = await db
+    .select({
+      id: gigsTable.id,
+      name: gigsTable.name,
+      description: gigsTable.description,
+      price: gigsTable.price,
+      status: gigsTable.status,
+      skills: gigsTable.skills,
+      createdAt: gigsTable.createdAt,
+      updatedAt: gigsTable.updatedAt,
+      createdBy: gigsTable.createdBy,
+      embedding: gigsTable.embedding,
+      embeddingContent: gigsTable.embeddingContent,
+    })
+    .from(proposalTable)
+    .where(
+      and(
+        eq(proposalTable.status, "ACCEPTED"),
+        eq(proposalTable.createdBy, userId),
+      ),
+    )
+    .orderBy(desc(proposalTable.createdAt))
+    .innerJoin(gigsTable, eq(gigsTable.id, proposalTable.gigId));
+
+  return gigs;
+}
 export async function searchGigsForQuery({ query }: { query: string }) {
   const embedding = await getEmbedding(query);
   const gigs = await db
@@ -136,7 +167,8 @@ export async function getGigsCreatedBy({ userId }: { userId: string }) {
   const gigs = await db
     .select()
     .from(gigsTable)
-    .where(eq(gigsTable.createdBy, userId));
+    .where(eq(gigsTable.createdBy, userId))
+    .orderBy(desc(gigsTable.createdAt));
 
   return gigs;
 }
@@ -242,7 +274,10 @@ export async function finishGig({ id }: { id: string }) {
       .set({ credits: sql`${userTable.credits} + ${price}` })
       .where(eq(userTable.id, gigFinishedByUser));
 
-    await tx.update(gigsTable).set({ status: "COMPLETED" });
+    await tx
+      .update(gigsTable)
+      .set({ status: "COMPLETED" })
+      .where(eq(gigsTable.id, id));
   });
 }
 
