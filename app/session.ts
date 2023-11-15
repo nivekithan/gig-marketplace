@@ -1,5 +1,6 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import { env } from "./lib/utils/env.server";
+import { checkIpAddress } from "./lib/utils/pangea.server";
 
 type AuthSessionState = { userId: string };
 
@@ -22,6 +23,7 @@ export async function getAuthSession(request: Request) {
 
 export async function requireUser(request: Request): Promise<string> {
   const userId = await getUser(request);
+  await checkIpAddress(request);
 
   if (userId === undefined) {
     throw redirect("/auth");
@@ -32,6 +34,7 @@ export async function requireUser(request: Request): Promise<string> {
 
 export async function requireAnonymous(request: Request) {
   const userId = await getUser(request);
+  await checkIpAddress(request);
 
   if (userId !== undefined) {
     throw redirect("/app/gig/type/latest");

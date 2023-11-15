@@ -4,7 +4,7 @@ import {
   json,
   redirect,
 } from "@remix-run/node";
-import { Form, useNavigation } from "@remix-run/react";
+import { Form, useActionData, useNavigation } from "@remix-run/react";
 import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -61,6 +61,14 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     return json({ submission }, { status: 400 });
+  } else if (userState.status === "PASSWORD_BREACHED") {
+    addError({
+      submission,
+      key: "password",
+      error: "Your password is found breached list. Choose new password",
+    });
+
+    return json({ submission }, { status: 400 });
   }
 
   const userId = userState.userId;
@@ -74,7 +82,9 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Component() {
+  const actionData = useActionData<typeof action>();
   const [authForm, { email, password }] = useForm({
+    lastSubmission: actionData?.submission,
     onValidate({ formData }) {
       return parse(formData, { schema: AuthSchema });
     },
@@ -86,7 +96,7 @@ export default function Component() {
 
   return (
     <main className="container min-h-screen grid place-items-center">
-      <Card>
+      <Card className="w-[380px]">
         <CardHeader>
           <CardTitle>Sign in / Sign Up</CardTitle>
         </CardHeader>
