@@ -56,12 +56,6 @@ export default function Component() {
               <UserCircle2 size="16" />
               Profile
             </LinkItem>
-            <LinkItem
-              to="/app/settings/notifications"
-              active={matchedPath === "notifications"}
-            >
-              <Bell size="16" /> Notifications
-            </LinkItem>
           </LinkGroup>
           <LinkGroup>
             <LinkHeader>Billing</LinkHeader>
