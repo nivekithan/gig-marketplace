@@ -26,7 +26,7 @@ export async function checkIpAddress(request: Request) {
     return null;
   }
 
-  const [isEmbargoed, isBadIpAddree] = await Promise.all([
+  const [isEmbargoed, isGoodIpAddree] = await Promise.all([
     isFromEmbargoedCountryImpl(ipAddress),
     isReputedIpAddress(ipAddress),
   ]);
@@ -35,7 +35,7 @@ export async function checkIpAddress(request: Request) {
     throw redirect("/embargoed");
   }
 
-  if (isBadIpAddree) {
+  if (!isGoodIpAddree) {
     throw redirect("/badIpAddress");
   }
 }
