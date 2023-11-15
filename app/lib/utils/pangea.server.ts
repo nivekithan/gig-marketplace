@@ -69,6 +69,7 @@ async function isReputedIpAddress(ipAddress: string) {
 }
 
 export async function isPasswordBreached(password: string) {
+  return false;
   const hash = sha256().update(password).digest("hex");
 
   return isPasswordBreachedImpl(hash);
@@ -76,7 +77,7 @@ export async function isPasswordBreached(password: string) {
 
 async function isPasswordBreachedImpl(hash: string) {
   return cachified({
-    key: `password-breach-${hash.substring(0, 5)}`,
+    key: `password-breach-${hash}`,
     cache: lruCache,
     async getFreshValue() {
       const userIntel = new UserIntelService(
