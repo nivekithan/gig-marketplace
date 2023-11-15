@@ -1,9 +1,14 @@
 import { conform, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
-import { Form, useLoaderData, useNavigation } from "@remix-run/react";
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+} from "@remix-run/react";
 import { z } from "zod";
-import { InputField } from "~/components/inputField";
+import { InputErrors, InputField } from "~/components/inputField";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { TextTitle } from "~/components/ui/text";
@@ -65,6 +70,7 @@ const UpdateUserDetailsSchema = z.object({
 export default function Component() {
   const { user } = useLoaderData<typeof loader>();
 
+  const actionData = useActionData<typeof action>();
   const [selectedSkills, setSelectedSkills] = useState<MultiValue<{
     label: string;
     value: string;
@@ -77,6 +83,7 @@ export default function Component() {
   });
 
   const [updateUserDetailsForm, { email, name, skills }] = useForm({
+    lastSubmission: actionData?.submission,
     onValidate({ formData }) {
       return parse(formData, { schema: UpdateUserDetailsSchema });
     },
@@ -101,6 +108,7 @@ export default function Component() {
             placeholder="Set your profile name"
             defaultValue={user.name || undefined}
           />
+          <InputErrors errors={name.errors} />
         </InputField>
 
         <InputField>
@@ -110,6 +118,7 @@ export default function Component() {
             placeholder="Update your email address"
             defaultValue={user.email}
           />
+          <InputErrors errors={email.errors} />
         </InputField>
         <div>
           <Label>Select Skills:</Label>
