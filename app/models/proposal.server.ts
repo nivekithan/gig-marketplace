@@ -126,6 +126,24 @@ export async function getAllOpenProposalForGig({ gigId }: { gigId: string }) {
   return allProposals;
 }
 
+export async function getAccpetedProposalForGig({ gigId }: { gigId: string }) {
+  const acceptedProposal = await db
+    .select()
+    .from(proposalTable)
+    .where(
+      and(eq(proposalTable.gigId, gigId), eq(proposalTable.status, "ACCEPTED")),
+    )
+    .innerJoin(userTable, eq(proposalTable.createdBy, userTable.id));
+
+  if (acceptedProposal.length !== 1) {
+    throw new Error(
+      "Unexpected Error: There are more than 1 accepted proposal",
+    );
+  }
+
+  return acceptedProposal[0];
+}
+
 export async function rejectProposal({ id }: { id: string }) {
   await db
     .update(proposalTable)
@@ -161,6 +179,7 @@ export function whiteLableProposal(proposal: ProposalRow) {
     createdAt: proposal.createdAt.toString(),
     gigId: proposal.gigId,
     createdBy: proposal.createdBy,
+    status: proposal.status,
   };
 }
 

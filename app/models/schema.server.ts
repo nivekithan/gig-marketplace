@@ -98,6 +98,7 @@ export const creditCardTable = pgTable("credit_card", {
 export const paymentOrderType = pgEnum("payment_order_type", [
   "add",
   "withdraw",
+  "gig_completion",
 ]);
 
 export const paymentHistoryTable = pgTable("payment_history", {

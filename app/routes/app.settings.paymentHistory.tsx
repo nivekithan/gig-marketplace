@@ -74,7 +74,9 @@ function PaymentHistory({
                 <TableCell>
                   {paymentHistory.orderType === "add"
                     ? "Add credits"
-                    : "Withdraw credits"}
+                    : paymentHistory.orderType === "withdraw"
+                    ? "Withdraw credits"
+                    : "Finish Gig"}
                 </TableCell>
                 <TableCell>$ {paymentHistory.orderValue}</TableCell>
                 <TableCell>

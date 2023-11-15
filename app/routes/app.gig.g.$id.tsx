@@ -19,18 +19,20 @@ import { ClipLoader } from "react-spinners";
 import { z } from "zod";
 import { ExpandedGigInfo } from "~/components/GigInfo";
 import { InputErrors, InputField } from "~/components/inputField";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Textarea } from "~/components/ui/textarea";
-import { gigById, whiteLabelGigs } from "~/models/gigs.server";
+import { finishGig, gigById, whiteLabelGigs } from "~/models/gigs.server";
 import {
   ClientProposalRow,
   acceptProposalForGig,
   createProposal,
   deleteProposalByUserOnGig,
   editProposal,
+  getAccpetedProposalForGig,
   getAllOpenProposalForGig,
   getNumberOfProposalForGig,
   proposalByUserForGig,
@@ -71,14 +73,24 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       return null;
     }
 
-    const allProposals = await getAllOpenProposalForGig({ gigId: id });
+    if (gig.status === "CREATED") {
+      const allProposals = await getAllOpenProposalForGig({ gigId: id });
 
-    return allProposals.map(({ proposal, user }) => {
-      return {
-        user: whiteLabelUser(user),
-        proposal: whiteLableProposal(proposal),
-      };
-    });
+      return allProposals.map(({ proposal, user }) => {
+        return {
+          user: whiteLabelUser(user),
+          proposal: whiteLableProposal(proposal),
+        };
+      });
+    }
+
+    const accpetedProposal = await getAccpetedProposalForGig({ gigId: id });
+    return [
+      {
+        user: whiteLabelUser(accpetedProposal.user),
+        proposal: whiteLableProposal(accpetedProposal.proposal),
+      },
+    ];
   })();
 
   return defer({
@@ -98,7 +110,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
   ]);
 
   const submission = parse(formData, {
-    schema: z.union([CreateOrEditProposalSchema, AcceptOrRejectProposalSchema]),
+    schema: z.union([
+      CreateOrEditProposalSchema,
+      AcceptOrRejectProposalSchema,
+      FinishGigSchema,
+    ]),
   });
 
   if (!submission.value || submission.intent !== "submit") {
@@ -120,10 +136,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
     });
   } else if (submissionData.type === "delete") {
     await deleteProposalByUserOnGig({ gigId: id, userId });
-  } else if (submissionData.type === "accpet") {
+  } else if (submissionData.type === "accept") {
     await acceptProposalForGig({ gigId: id, id: submissionData.proposalId });
   } else if (submissionData.type === "reject") {
     await rejectProposal({ id: submissionData.proposalId });
+  } else if (submissionData.type === "finish") {
+    await finishGig({ id });
   }
 
   return json({ submission });
@@ -155,7 +173,7 @@ export default function Component() {
 }
 
 function AllProposal() {
-  const { allProposalsToGig } = useLoaderData<typeof loader>();
+  const { allProposalsToGig, gig } = useLoaderData<typeof loader>();
 
   return (
     <Suspense fallback={<CreateProposalSkeleton />}>
@@ -173,10 +191,17 @@ function AllProposal() {
                     key={proposal.proposal.id}
                     className="flex flex-col gap-y-6"
                   >
-                    <SingleProposal
-                      proposal={proposal.proposal}
-                      user={proposal.user}
-                    />
+                    {proposal.proposal.status === "OPEN" ? (
+                      <SingleOpenProposal
+                        proposal={proposal.proposal}
+                        user={proposal.user}
+                      />
+                    ) : (
+                      <SingleAcceptedProposal
+                        proposal={proposal.proposal}
+                        user={proposal.user}
+                      />
+                    )}
                     <Separator />
                   </div>
                 );
@@ -189,11 +214,65 @@ function AllProposal() {
   );
 }
 
+const FinishGigSchema = z.object({ type: z.literal("finish") });
+
+function SingleAcceptedProposal({
+  proposal,
+  user,
+}: {
+  proposal: ClientProposalRow;
+  user: ClientUSerRow;
+}) {
+  const finishGigFetcher = useFetcher<typeof action>();
+
+  const [finishGigForm, { type }] = useForm({
+    onValidate({ formData }) {
+      return parse(formData, { schema: FinishGigSchema });
+    },
+  });
+
+  const isFinishingGig =
+    finishGigFetcher.state === "loading" ||
+    finishGigFetcher.state === "submitting";
+
+  return (
+    <div className="flex flex-col gap-y-3">
+      <p className="flex gap-x-2 items-center">
+        <span>
+          <span className="text-muted-foreground text-sm"> Proposed By:</span>{" "}
+          {user.name || user.email}
+        </span>
+        <Badge>Accepted</Badge>
+      </p>
+      <Textarea
+        defaultValue={proposal.proposal}
+        readOnly
+        className="h-[120px]"
+      />
+      <finishGigFetcher.Form
+        className="flex items-center gap-x-2"
+        method="post"
+        {...finishGigForm.props}
+      >
+        <Button
+          type="submit"
+          name={type.name}
+          value="finish"
+          className="flex gap-x-2"
+        >
+          Finish Gig
+          <ClipLoader loading={isFinishingGig} color="white" size={16} />
+        </Button>
+      </finishGigFetcher.Form>
+    </div>
+  );
+}
+
 const AcceptOrRejectProposalSchema = z.object({
-  type: z.union([z.literal("accpet"), z.literal("reject")]),
+  type: z.union([z.literal("accept"), z.literal("reject")]),
   proposalId: z.string(),
 });
-function SingleProposal({
+function SingleOpenProposal({
   proposal,
   user,
 }: {
@@ -213,7 +292,7 @@ function SingleProposal({
 
   const isAcceptingProposal =
     isSubmittingForm &&
-    updateProposalFetcher.formData?.get("type") === "accpet" &&
+    updateProposalFetcher.formData?.get("type") === "accept" &&
     updateProposalFetcher.formData.get("proposalId") === proposal.id;
 
   const isRejectingProposal =

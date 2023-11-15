@@ -1,6 +1,11 @@
 import { db } from "~/lib/utils/db.server";
-import { and, desc, eq, ne } from "drizzle-orm";
-import { gigsTable, proposalTable } from "./schema.server";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
+import {
+  gigsTable,
+  paymentHistoryTable,
+  proposalTable,
+  userTable,
+} from "./schema.server";
 import { ValidGigSkills } from "./skills";
 
 export type GigRow = typeof gigsTable.$inferSelect;
@@ -134,6 +139,52 @@ export async function deleteGig({
   }
 
   return deletedGig[0];
+}
+
+export async function finishGig({ id }: { id: string }) {
+  await db.transaction(async (tx) => {
+    const gig = await tx
+      .select({ price: gigsTable.price })
+      .from(gigsTable)
+      .where(eq(gigsTable.id, id));
+
+    if (gig.length !== 1) {
+      throw new Error(
+        "unexpected Error: More than one gigs has been returned from database",
+      );
+    }
+
+    const accpetedProposal = await tx
+      .select({ userId: userTable.id })
+      .from(proposalTable)
+      .where(
+        and(eq(proposalTable.gigId, id), eq(proposalTable.status, "ACCEPTED")),
+      )
+      .innerJoin(userTable, eq(proposalTable.createdBy, userTable.id));
+
+    if (accpetedProposal.length !== 1) {
+      throw new Error(
+        "Unexpected Error: More than one proposal has been returned from database",
+      );
+    }
+
+    const gigFinishedByUser = accpetedProposal[0].userId;
+    const price = gig[0].price;
+
+    console.log(gigFinishedByUser);
+    await tx.insert(paymentHistoryTable).values({
+      orderType: "gig_completion",
+      orderValue: price,
+      userId: gigFinishedByUser,
+    });
+
+    await tx
+      .update(userTable)
+      .set({ credits: sql`${userTable.credits} + ${price}` })
+      .where(eq(userTable.id, gigFinishedByUser));
+
+    await tx.update(gigsTable).set({ status: "COMPLETED" });
+  });
 }
 
 export function whiteLabelGigs(gigs: GigRow) {
