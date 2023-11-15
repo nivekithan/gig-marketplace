@@ -12,6 +12,9 @@ const EnvVariableSchema = z.object({
 
   // Cookies
   COOKIE_SECRET: z.string().min(1),
+
+  // OPENAI_API_KEY
+  OPENAI_API_KEY: z.string().min(1),
 });
 
 export type EnvVariables = z.infer<typeof EnvVariableSchema>;

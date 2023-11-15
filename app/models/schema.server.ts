@@ -1,4 +1,5 @@
 import {
+  customType,
   integer,
   json,
   pgEnum,
@@ -15,6 +16,24 @@ export const gigsStatusEnum = pgEnum("gigs_status", [
   "COMPLETED",
   "ASSIGNED",
 ]);
+
+export const vector = customType<{
+  data: number[];
+  notNull: false;
+  default: false;
+  driverData: string;
+  config: { dimension: number };
+}>({
+  dataType(config) {
+    return `vector(${config?.dimension ?? 1536})`;
+  },
+  toDriver(value) {
+    return JSON.stringify(value);
+  },
+  fromDriver(value): number[] {
+    return JSON.parse(value);
+  },
+});
 
 export const gigsTable = pgTable("gigs", {
   id: text("id")
@@ -35,6 +54,8 @@ export const gigsTable = pgTable("gigs", {
   createdBy: text("created_by")
     .notNull()
     .references(() => userTable.id),
+  embedding: vector("embedding", { dimension: 1536 }).notNull(),
+  embeddingContent: text("embedding_content").notNull(),
 });
 
 export const proposalStatusEnum = pgEnum("proposal_status", [

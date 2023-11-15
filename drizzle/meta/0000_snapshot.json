@@ -1,5 +1,5 @@
 {
-  "id": "8643768d-7592-4445-a3ab-33b7671a09dc",
+  "id": "c06c818e-c68a-4ba3-84f0-10652c39c4c4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -117,6 +117,18 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "embedding": {
+          "name": "embedding",
+          "type": "vector(1536)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "embedding_content": {
+          "name": "embedding_content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
@@ -165,6 +177,12 @@
           "type": "payment_order_type",
           "primaryKey": false,
           "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
@@ -184,15 +202,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "payment_history_user_id_unique": {
-          "name": "payment_history_user_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
-        }
-      }
+      "uniqueConstraints": {}
     },
     "proposal": {
       "name": "proposal",
@@ -215,6 +225,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "proposal_status",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'OPEN'"
         },
         "created_by": {
           "name": "created_by",
@@ -339,6 +356,22 @@
         "CREATED": "CREATED",
         "COMPLETED": "COMPLETED",
         "ASSIGNED": "ASSIGNED"
+      }
+    },
+    "payment_order_type": {
+      "name": "payment_order_type",
+      "values": {
+        "add": "add",
+        "withdraw": "withdraw",
+        "gig_completion": "gig_completion"
+      }
+    },
+    "proposal_status": {
+      "name": "proposal_status",
+      "values": {
+        "OPEN": "OPEN",
+        "ACCEPTED": "ACCEPTED",
+        "REJECTED": "REJECTED"
       }
     }
   },

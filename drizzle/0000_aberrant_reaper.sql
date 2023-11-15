@@ -4,6 +4,18 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
+DO $$ BEGIN
+ CREATE TYPE "payment_order_type" AS ENUM('add', 'withdraw', 'gig_completion');
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ CREATE TYPE "proposal_status" AS ENUM('OPEN', 'ACCEPTED', 'REJECTED');
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "credit_card" (
 	"id" text PRIMARY KEY NOT NULL,
 	"number" text NOT NULL,
@@ -21,7 +33,9 @@ CREATE TABLE IF NOT EXISTS "gigs" (
 	"skills" json NOT NULL,
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL,
-	"created_by" text NOT NULL
+	"created_by" text NOT NULL,
+	"embedding" vector(1536) NOT NULL,
+	"embedding_content" text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "payment_history" (
@@ -29,13 +43,14 @@ CREATE TABLE IF NOT EXISTS "payment_history" (
 	"user_id" text NOT NULL,
 	"order_value" integer NOT NULL,
 	"order_type" "payment_order_type" NOT NULL,
-	CONSTRAINT "payment_history_user_id_unique" UNIQUE("user_id")
+	"created_at" timestamp NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "proposal" (
 	"id" text PRIMARY KEY NOT NULL,
 	"gig_id" text NOT NULL,
 	"proposal" text NOT NULL,
+	"status" "proposal_status" DEFAULT 'OPEN' NOT NULL,
 	"created_by" text NOT NULL,
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL,

@@ -7,6 +7,7 @@ import {
   userTable,
 } from "./schema.server";
 import { ValidGigSkills } from "./skills";
+import { getEmbedding } from "~/lib/utils/openai.server";
 
 export type GigRow = typeof gigsTable.$inferSelect;
 
@@ -56,6 +57,11 @@ export async function createGigs({
   createdByUserId: string;
   skills: ValidGigSkills[];
 }) {
+  const embeddingContent = `${name}\n${description}\n Required Skills: ${skills.join(
+    ",",
+  )}`;
+  const embedding = await getEmbedding(embeddingContent);
+
   const createdGigs = await db
     .insert(gigsTable)
     .values({
@@ -65,6 +71,8 @@ export async function createGigs({
       price,
       createdBy: createdByUserId,
       skills,
+      embedding,
+      embeddingContent,
     })
     .returning();
 
