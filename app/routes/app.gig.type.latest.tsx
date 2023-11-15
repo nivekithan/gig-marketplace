@@ -1,9 +1,8 @@
-import { LoaderFunctionArgs, json } from "@remix-run/node";
+import { LoaderFunctionArgs, MetaFunction, json } from "@remix-run/node";
 import {
   Form,
   Link,
   useLoaderData,
-  useLocation,
   useNavigation,
   useSearchParams,
 } from "@remix-run/react";
@@ -20,6 +19,10 @@ import {
   whiteLabelGigs,
 } from "~/models/gigs.server";
 import { requireUser } from "~/session";
+
+export function meta(): ReturnType<MetaFunction> {
+  return [{ title: "Latests gigs" }];
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUser(request);

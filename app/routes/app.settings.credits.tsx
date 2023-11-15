@@ -1,6 +1,11 @@
 import { Submission, conform, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
-import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction,
+  json,
+} from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -32,6 +37,10 @@ import {
   withdrawCredits,
 } from "~/models/user.server";
 import { requireUser } from "~/session";
+
+export function meta(): ReturnType<MetaFunction> {
+  return [{ title: "Settings | Credits" }];
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUser(request);

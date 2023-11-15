@@ -1,4 +1,9 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction,
+  json,
+} from "@remix-run/node";
 import { Link, useFetcher, useLoaderData } from "@remix-run/react";
 import { Button } from "~/components/ui/button";
 import { TextTitle } from "~/components/ui/text";
@@ -23,7 +28,7 @@ import { GigCreateOrEditFields } from "~/components/GigCreateEditFormFields";
 import { z } from "zod";
 import { conform, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { ValidGigSkills, validSkills } from "~/models/skills";
 import { GigInfo } from "~/components/GigInfo";
@@ -33,6 +38,10 @@ import { db } from "~/lib/utils/db.server";
 import getUrls from "get-urls";
 import { verifyUrlisGood } from "~/lib/utils/pangea.server";
 import { addError } from "~/lib/utils/conform.server";
+
+export function meta(): ReturnType<MetaFunction> {
+  return [{ title: "All created gigs" }];
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUser(request);

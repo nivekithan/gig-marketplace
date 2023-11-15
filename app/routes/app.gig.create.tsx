@@ -3,6 +3,7 @@ import { parse } from "@conform-to/zod";
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
+  MetaFunction,
   json,
   redirect,
 } from "@remix-run/node";
@@ -20,6 +21,10 @@ import { getUserCredits, withdrawCredits } from "~/models/user.server";
 import { requireUser } from "~/session";
 import getUrls from "get-urls";
 import { verifyUrlisGood as verifyUrlIsGood } from "~/lib/utils/pangea.server";
+
+export function meta(): ReturnType<MetaFunction> {
+  return [{ title: "Create gig" }];
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireUser(request);

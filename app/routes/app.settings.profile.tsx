@@ -1,6 +1,11 @@
 import { conform, useForm } from "@conform-to/react";
 import { parse } from "@conform-to/zod";
-import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction,
+  json,
+} from "@remix-run/node";
 import {
   Form,
   useActionData,
@@ -19,6 +24,10 @@ import Select, { MultiValue } from "react-select";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { ClipLoader } from "react-spinners";
+
+export function meta(): ReturnType<MetaFunction> {
+  return [{ title: "Settings | Profile" }];
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUser(request);

@@ -3,6 +3,7 @@ import { parse } from "@conform-to/zod";
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
+  MetaFunction,
   defer,
   json,
 } from "@remix-run/node";
@@ -54,6 +55,10 @@ import {
 } from "~/models/proposal.server";
 import { ClientUSerRow, whiteLabelUser } from "~/models/user.server";
 import { requireUser } from "~/session";
+
+export function meta(): ReturnType<MetaFunction> {
+  return [{ title: "Gig Marketplace" }];
+}
 
 const RouteParamsSchema = z.object({ id: z.string() });
 

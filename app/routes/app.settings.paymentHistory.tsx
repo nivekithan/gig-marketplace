@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, json } from "@remix-run/node";
+import { LoaderFunctionArgs, MetaFunction, json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import format from "date-fns/format";
 import { Button } from "~/components/ui/button";
@@ -16,6 +16,10 @@ import {
   getPaymentHistoryForUser,
 } from "~/models/paymentHistory.server";
 import { requireUser } from "~/session";
+
+export function meta(): ReturnType<MetaFunction> {
+  return [{ title: "Settings | Payment History" }];
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUser(request);
