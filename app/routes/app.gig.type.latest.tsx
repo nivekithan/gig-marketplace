@@ -1,33 +1,74 @@
 import { LoaderFunctionArgs, json } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  useLoaderData,
+  useLocation,
+  useNavigation,
+  useSearchParams,
+} from "@remix-run/react";
+import { ClipLoader } from "react-spinners";
 import { GigInfo } from "~/components/GigInfo";
+import { InputField } from "~/components/inputField";
 import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import { TextTitle } from "~/components/ui/text";
 import {
   ClientGigRow,
   latestGigsNotCreatedBy,
+  searchGigsForQuery,
   whiteLabelGigs,
 } from "~/models/gigs.server";
 import { requireUser } from "~/session";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUser(request);
-  const latestGigs = await latestGigsNotCreatedBy({ userId });
+  const url = new URL(request.url);
+  const queryParam = url.searchParams.get("q");
 
-  return json({ gigs: latestGigs.map(whiteLabelGigs) });
+  if (!queryParam) {
+    const latestGigs = await latestGigsNotCreatedBy({ userId });
+    return json({ gigs: latestGigs.map(whiteLabelGigs) });
+  } else {
+    const gigs = await searchGigsForQuery({ query: queryParam });
+    return json({ gigs: gigs.map(whiteLabelGigs) });
+  }
 }
 
 export default function Component() {
   const { gigs } = useLoaderData<typeof loader>();
   const isLatestsGigsEmpty = gigs.length === 0;
 
-  return isLatestsGigsEmpty ? (
-    <LatestGigsEmptyState />
-  ) : (
-    <div>
-      {gigs.map((gig) => {
-        return <SingleGig {...gig} key={gig.id} />;
-      })}
+  const navigation = useNavigation();
+  const isSearching = navigation.state === "loading";
+
+  const [searchParams] = useSearchParams();
+  const queryValue = searchParams.get("q");
+
+  return (
+    <div className="max-w-[720px] flex flex-col gap-y-6">
+      <Form>
+        <InputField>
+          <Input
+            className="rounded-full h-[48px] px-4"
+            placeholder="Search for gigs..."
+            name="q"
+            defaultValue={queryValue || undefined}
+          />
+          <div className="min-h-[25px] min-w-[25px]">
+            <ClipLoader size={16} color="black" loading={isSearching} />
+          </div>
+        </InputField>
+      </Form>
+      {isLatestsGigsEmpty ? (
+        <LatestGigsEmptyState />
+      ) : (
+        <div className="flex flex-col gap-y-6">
+          {gigs.map((gig) => {
+            return <SingleGig {...gig} key={gig.id} />;
+          })}
+        </div>
+      )}
     </div>
   );
 }

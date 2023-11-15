@@ -25,6 +25,18 @@ export async function gigById({ id }: { id: string }) {
   return gigs[0];
 }
 
+export async function searchGigsForQuery({ query }: { query: string }) {
+  const embedding = await getEmbedding(query);
+  const gigs = await db
+    .select()
+    .from(gigsTable)
+    .where(eq(gigsTable.status, "CREATED"))
+    .orderBy(sql`${gigsTable.embedding} <=> ${JSON.stringify(embedding)}`)
+    .limit(5);
+
+  return gigs;
+}
+
 function convertGigToEmbeddableContent({
   description,
   name,
@@ -133,7 +145,9 @@ export async function latestGigsNotCreatedBy({ userId }: { userId: string }) {
   const gigs = await db
     .select()
     .from(gigsTable)
-    .where(ne(gigsTable.createdBy, userId))
+    .where(
+      and(ne(gigsTable.createdBy, userId), eq(gigsTable.status, "CREATED")),
+    )
     .orderBy(desc(gigsTable.createdAt));
 
   return gigs;

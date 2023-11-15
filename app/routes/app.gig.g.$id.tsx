@@ -15,11 +15,11 @@ import {
   useLoaderData,
   useNavigation,
 } from "@remix-run/react";
-import { ArrowsUpFromLine, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Suspense } from "react";
 import { ClipLoader } from "react-spinners";
 import { z } from "zod";
-import { CompactGigInfo, ExpandedGigInfo, GigInfo } from "~/components/GigInfo";
+import { ExpandedGigInfo, GigInfo } from "~/components/GigInfo";
 import { InputErrors, InputField } from "~/components/inputField";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";

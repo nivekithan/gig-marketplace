@@ -1,8 +1,10 @@
+import { cn } from "~/lib/utils";
+
 export type InputFieldProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function InputField(props: InputFieldProps) {
   return (
-    <div {...props} className="flex flex-col gap-y-1">
+    <div {...props} className={cn("flex flex-col gap-y-1", props.className)}>
       {props.children}
     </div>
   );
