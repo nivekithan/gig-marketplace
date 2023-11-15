@@ -15,12 +15,13 @@ import {
   useLoaderData,
   useNavigation,
 } from "@remix-run/react";
-import { ArrowsUpFromLine } from "lucide-react";
+import { ArrowsUpFromLine, Clock } from "lucide-react";
 import { Suspense } from "react";
 import { ClipLoader } from "react-spinners";
 import { z } from "zod";
 import { CompactGigInfo, ExpandedGigInfo, GigInfo } from "~/components/GigInfo";
 import { InputErrors, InputField } from "~/components/inputField";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -237,6 +238,21 @@ function SimilarGigs() {
   );
 }
 
+function EmptyProposalState() {
+  return (
+    <Alert>
+      <Clock size={22} />
+      <div>
+        <AlertTitle className="text-lg font-semibold tracking-tight">
+          No proposal made yet
+        </AlertTitle>
+        <AlertDescription>
+          No one has sent proposal for this gig. Check again after some time
+        </AlertDescription>
+      </div>
+    </Alert>
+  );
+}
 function AllProposal() {
   const { allProposalsToGig, gig } = useLoaderData<typeof loader>();
 
@@ -244,8 +260,8 @@ function AllProposal() {
     <Suspense fallback={<CreateProposalSkeleton />}>
       <Await resolve={allProposalsToGig}>
         {(allProposalsToGig) => {
-          if (allProposalsToGig === null) {
-            return null;
+          if (allProposalsToGig === null || allProposalsToGig.length === 0) {
+            return <EmptyProposalState />;
           }
 
           return (
