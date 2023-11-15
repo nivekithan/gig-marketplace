@@ -113,10 +113,10 @@ export function ExpandedGigInfo({
     <div className="flex flex-col gap-y-6">
       <div className="flex flex-col gap-y-4 items-start">
         <TextTitle className="text-xl">{name}</TextTitle>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground whitespace-pre-wrap">
           Posted on {postedBefore} | {noOfProposal} Proposals
         </p>
-        <p className="text-base">{description}</p>
+        <p className="text-base whitespace-pre-wrap">{description}</p>
       </div>
       <div className="flex items-center justify-between">
         <div className="flex gap-x-3 flex-wrap">

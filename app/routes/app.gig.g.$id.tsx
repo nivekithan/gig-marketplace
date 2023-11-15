@@ -55,7 +55,6 @@ import {
 import { ClientUSerRow, whiteLabelUser } from "~/models/user.server";
 import { requireUser } from "~/session";
 import * as Spinners from "react-spinners";
-
 const ClipLoader = Spinners.ClipLoader;
 
 export function meta(): ReturnType<MetaFunction> {
@@ -249,7 +248,7 @@ export default function Component() {
           {isCreatedByUser ? <AllProposal /> : <AddProposalForm />}
         </main>
       </div>
-      <div className="min-h-screen sticky top-0 border-l">
+      <div className="h-screen sticky top-0 border-l">
         <SimilarGigs />
       </div>
     </div>
